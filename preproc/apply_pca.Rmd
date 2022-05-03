@@ -1,0 +1,235 @@
+---
+title: "Preprocess"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+ipak <- function(pkg){
+    new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+    if (length(new.pkg)) 
+        install.packages(new.pkg, dependencies = TRUE)
+    sapply(pkg, require, character.only = TRUE)
+}
+
+# usage
+packages <- c("factoextra", "dplyr", "psych", "kableExtra", "reshape2", "ggplot2", "compareGroups", "ggpubr", "mice")
+ipak(packages)
+
+
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+```{r apply to new data, echo=FALSE, include=FALSE}
+
+#import data
+et_select_comp <- read.table("../data/ET_DATABASE_IMPUTED.txt", header = TRUE, sep=" ")
+
+#replace infinite with NA
+et_select_comp[mapply(is.infinite, et_select_comp)] <- NA
+
+# replace NaN with NA
+et_select_comp[mapply(is.nan, et_select_comp)] <- NA
+
+# write subject data to separate variable
+subject <- et_select_comp$subj
+
+# remove variables from dataset
+et_select_comp <- select(et_select_comp, -c(vis_mem_cap, vis_mem_rate, ver_mem_cap, ver_mem_rate, sustained_mrt))
+et_select_comp_pca <- select(et_select_comp, -c(subj))
+
+
+# predict the pca scores based on the pca model
+princ_2 <- predict(princ, et_select_comp_pca)
+princ_2 <- as.data.frame(princ_2)
+
+#replace infinite with NA
+et_select_comp_pca[mapply(is.infinite, et_select_comp_pca)] <- NA
+
+# replace NaN with NA
+et_select_comp_pca[mapply(is.nan, et_select_comp_pca)] <- NA
+
+# transformeer naar z-scores en maak er een dataframe van
+et_scaled <- as.data.frame(scale(et_select_comp_pca, center = T, scale = T))
+#et_scaled <- as.data.frame(et_scaled)
+
+
+# calculate domain scores
+#### VISUOMOTOR INTEGRATION ####
+#proc_d <- princ_2$RC1
+visuom_acc <- et_scaled$visuom_fixed_m
+visuom_stab <- et_scaled$visuom_fixed_sd
+visuom_speed <- et_scaled$visuom_speed_d
+motor_inh <- et_scaled$motor_response
+
+# extract the loadings
+visuom_loadings <- c(princ$loadings[,1]["visuom_fixed_m"], princ$loadings[,1]["visuom_fixed_sd"], princ$loadings[,1]["visuom_speed_d"], princ$loadings[,1]["motor_response"])
+
+#scale the loadings to sum to 1
+visuom_loadings <- visuom_loadings/sum(sqrt(visuom_loadings*visuom_loadings))
+
+# apply contribution of each variable accoring to scaled loadings
+visuom_acc_d <- visuom_acc * visuom_loadings[1]
+visuom_stab_d <- visuom_stab * visuom_loadings[2]
+visuom_speed_d <- visuom_speed * visuom_loadings[3]
+motor_inh_d <- motor_inh * visuom_loadings[4]
+
+# calculate domain score 
+d_visuom <- (visuom_acc_d + visuom_stab_d + visuom_speed_d + motor_inh_d)
+
+
+
+
+#### PROCESSING AND CONTROL ####
+#proc_d <- princ_2$RC3
+proc_sp <- et_scaled$mrt_neutral
+proc_stab <- et_scaled$sd_neutral 
+consis <- et_scaled$tau
+orient <- et_scaled$orienting_mrt
+int_cont <- et_scaled$exec_mrt
+
+#extract the loadings
+proc_loadings <- c(princ$loadings[,2]["mrt_neutral"], princ$loadings[,2]["sd_neutral"], princ$loadings[,2]["tau"], princ$loadings[,2]["orienting_mrt"], princ$loadings[,2]["exec_mrt"])
+
+#scale the loadings to sum to 1
+proc_loadings <- proc_loadings/sum(sqrt(proc_loadings*proc_loadings))
+
+#!!!!
+#Change the direction of this variable so that higher is better
+proc_loadings <- sqrt(proc_loadings*proc_loadings)
+
+# apply contribution of each variable accoring to scaled loadings
+proc_sp_d <- proc_sp * proc_loadings[1]
+proc_stab_d <- proc_stab * proc_loadings[2]
+consis_d <- consis * proc_loadings[3]
+orient_d <- orient * proc_loadings[4]
+int_cont_d <- int_cont * proc_loadings[5]
+
+# calculate domain score 
+d_proc <- (proc_sp_d + proc_stab_d + consis_d + orient_d + int_cont_d)
+
+
+
+
+#### VISUAL MEMORY ####
+#d_vis_mem <- princ_2$RC4
+vis_mem_enc <- et_scaled$vis_mem_enc
+vis_mem_cons <- et_scaled$vis_mem_cons
+visuom_trace <- et_scaled$visuom_random_d
+
+#extract the loadings
+vis_mem_loadings <- c(princ$loadings[,3]["vis_mem_enc"], princ$loadings[,3]["vis_mem_cons"], princ$loadings[,3]["visuom_random_d"])
+
+#scale the loadings to sum to 1
+vis_mem_loadings <- vis_mem_loadings/sum(sqrt(vis_mem_loadings*vis_mem_loadings))
+
+# apply contribution of each variable accoring to scaled loadings
+vis_mem_enc_d <- vis_mem_enc * vis_mem_loadings[1]
+vis_mem_cons_d <- vis_mem_cons * vis_mem_loadings[2]
+visuom_trace_d <- visuom_trace * vis_mem_loadings[3]
+
+# calculate domain score 
+d_vis_mem <- (vis_mem_enc_d + vis_mem_cons_d + visuom_trace_d)
+
+
+
+
+#### VERBAL MEMORY ####
+#d_ver_mem <- princ_2$RC7
+ver_mem_enc <- et_scaled$ver_mem_enc
+ver_mem_cons <- et_scaled$ver_mem_cons
+
+#extract the loadings
+ver_mem_loadings <- c(princ$loadings[,4]["ver_mem_enc"], princ$loadings[,4]["vis_mem_cons"])
+
+#scale the loadings to sum to 1
+ver_mem_loadings <- ver_mem_loadings/sum(sqrt(ver_mem_loadings*ver_mem_loadings))
+
+# apply contribution of each variable accoring to scaled loadings
+ver_mem_enc_d <- ver_mem_enc * ver_mem_loadings[1]
+ver_mem_cons_d <- ver_mem_cons * ver_mem_loadings[2]
+
+# calculate domain score 
+d_ver_mem <- (ver_mem_enc_d + ver_mem_cons_d)
+
+
+
+
+#### VERBAL WORKING MEMORY ####
+#d_ver_wm <- princ_2$RC2
+ver_wm_enc <- et_scaled$ver_wm_enc
+ver_wm_ce <- et_scaled$ver_wm_ce
+
+#extract the loadings
+ver_wm_loadings <- c(princ$loadings[,5]["ver_wm_enc"], princ$loadings[,5]["ver_wm_ce"])
+
+#scale the loadings to sum to 1
+ver_wm_loadings <- ver_wm_loadings/sum(sqrt(ver_wm_loadings*ver_wm_loadings))
+
+#!!!!
+#Change the direction of this variable so that higher is better
+ver_wm_loadings <- sqrt(ver_wm_loadings*ver_wm_loadings)
+
+# apply contribution of each variable accoring to scaled loadings
+ver_wm_enc_d <- ver_wm_enc * ver_wm_loadings[1]
+ver_wm_ce_d <- ver_wm_ce * ver_wm_loadings[2]
+
+# calculate domain score 
+d_ver_wm <- (ver_wm_enc_d + ver_wm_ce_d)
+
+
+# VISUAL WORKING MEMORY
+#d_vis_wm <- princ_2$RC8
+vis_wm_enc <- et_scaled$vis_wm_enc
+vis_wm_ce <- et_scaled$vis_wm_ce
+
+#extract the loadings
+vis_wm_loadings <- c(princ$loadings[,6]["vis_wm_enc"], princ$loadings[,6]["vis_wm_ce"])
+
+#scale the loadings to sum to 1
+vis_wm_loadings <- vis_wm_loadings/sum(sqrt(vis_wm_loadings*vis_wm_loadings))
+
+#!!!!
+#Change the direction of this variable so that higher is better
+vis_wm_loadings <- sqrt(vis_wm_loadings*vis_wm_loadings)
+
+# apply contribution of each variable accoring to scaled loadings
+vis_wm_enc_d <- vis_wm_enc * vis_wm_loadings[1]
+vis_wm_ce_d <- vis_wm_ce * vis_wm_loadings[2]
+
+# calculate domain score 
+d_vis_wm <- (vis_wm_enc_d + vis_wm_ce_d)
+
+
+# check against predicted score
+rs <- c(cor(princ_2$RC1, d_visuom, use="complete.obs"), cor(princ_2$RC3, d_proc, use="complete.obs"), cor(princ_2$RC7, d_ver_mem, use="complete.obs"), cor(princ_2$RC4, d_vis_mem, use="complete.obs"), cor(princ_2$RC2, d_ver_wm, use="complete.obs"), cor(princ_2$RC8, d_vis_wm, use="complete.obs"))
+
+r_names <-c("d_visuom", "d_proc", "d_ver_mem", "d_vis_mem", "d_ver_wm", "d_vis_wm")
+corrs <- data.frame(r_names, rs)
+
+print(paste0("Correlations between predicted score and calculated score: "))
+print(corrs)
+      
+et_domains <- data.frame(subject, d_visuom, d_proc, d_vis_mem, d_ver_mem, d_vis_wm, d_ver_wm)
+
+cor(et_domains, use="complete.obs")
+
+cor(princ_2, use="complete.obs")
+
+et_domains <- na.omit(et_domains)
+
+#write to file
+et_scaled <- data.frame(subject, et_scaled)
+et_domains <- merge(et_domains, et_scaled, by="subject")
+et_domains_data <- et_domains
+write.csv2(et_domains_data, "../databases/et_domains_pca_scores.csv", row.names = FALSE)
+
+
+```

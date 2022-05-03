@@ -1,0 +1,111 @@
+---
+title: "Preprocess"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+ipak <- function(pkg){
+    new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+    if (length(new.pkg)) 
+        install.packages(new.pkg, dependencies = TRUE)
+    sapply(pkg, require, character.only = TRUE)
+}
+
+# usage
+packages <- c("factoextra", "dplyr", "psych", "kableExtra", "reshape2", "ggplot2", "compareGroups", "ggpubr", "mice")
+ipak(packages)
+
+
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+```{r pca, echo=FALSE, warning=FALSE}
+
+pca_data  <- read.delim2("../data/ET_DATABASE_IMPUTED_control.txt", sep=" ", stringsAsFactors =F)
+
+#pca_data <- et_select_comp_pca
+
+pca_data <- as.data.frame(sapply(pca_data, as.numeric))
+
+pca_data <- do.call(data.frame,lapply(pca_data, function(x) replace(x, is.infinite(x),NA)))
+
+pca_data <- na.omit(pca_data)
+
+attach(pca_data)
+
+pca_data <- select(pca_data,-c(vis_mem_cap, vis_mem_rate, ver_mem_cap, ver_mem_rate, sustained_mrt, subj))
+
+# apply relative change for working memory measures
+#pca_data$ver_wm_ce <- pca_data$ver_wm_ce / pca_data$ver_wm_enc
+#pca_data$vis_wm_ce <- pca_data$vis_wm_ce / pca_data$vis_wm_enc
+
+princ <- principal(pca_data, residual=F, rotate="varimax", nfactors = 8)
+princ
+
+loadings <- sqrt(princ$loadings*princ$loadings)
+
+for (i in 1:princ$factors){
+  
+  #sorteer de variabelen per factor op lading van groot naar klein
+  loadings <- as.matrix.data.frame(loadings)
+  row.names(loadings) <- row.names(princ$loadings)
+  
+  #bepaal de drop in lading tussen elk paar opeenvolgende variabelen
+  loadings_i <- sort(loadings[,i], decreasing = TRUE)
+  loadings_i_diff <- vector(mode = "numeric", length = length(loadings_i))
+  names(loadings_i_diff) <- names(loadings_i)
+  
+  for (j in 2:(length(loadings_i)-1)){
+    
+    loadings_i_diff[j] <- loadings_i[j]-loadings_i[j+1]
+
+  }
+
+  # bepaal waar de grootste drop in lasing plaatsvindt (m.u.v. variabele 1 en 2)
+drop_largest <- names(sort(loadings_i_diff, decreasing = TRUE)[1])
+drop_pos <- match(drop_largest, names(loadings_i_diff))
+
+# houd rekening met het +/- teken
+signs <- sign(princ$loadings[,i])
+
+#order de tekens op basis van de orderning van lading per factor, en pas het teken toe
+loadings_i <- loadings_i * signs[match(names(loadings_i), names(signs))]
+
+# plot het resultaat, met daarin de selectie van meest kenmerkende variabelen weergegeven
+plot(loadings_i, main=paste(i, "th component", sep=""))
+abline(v=drop_pos+0.5, col = "blue")
+text(loadings_i, labels=names(loadings_i), cex= 0.5, pos=4)
+
+}
+
+
+#schrijf de domeinscores weg
+write.csv(princ$scores, file="../data/princ_scores.csv")
+
+et_select_comp <- read.delim2("../data/ET_DATABASE_IMPUTED.txt", header = TRUE, sep=" ", stringsAsFactors = F)
+#et_select_comp <- read.csv2("ET_DATABASE_IMPUTED.csv", header = TRUE, sep=" ", stringsAsFactors = F)
+
+pca_scores <- read.csv("../data/princ_scores.csv", sep = ",")
+
+# zet om in numerieke waarden
+et_select_comp <- as.data.frame(sapply(et_select_comp, as.numeric))
+
+#verwijder cases met missings
+et_select_comp <- do.call(data.frame,lapply(et_select_comp, function(x) replace(x, is.infinite(x),NA)))
+et_select_comp <- na.omit(et_select_comp)
+
+subject <- et_select_comp$subj
+
+et_select_comp <- select(et_select_comp, -c(vis_mem_cap, vis_mem_rate, ver_mem_cap, ver_mem_rate, sustained_mrt))
+et_select_comp_pca <- select(et_select_comp, -c(subj))
+
+```
+
