@@ -1,0 +1,213 @@
+---
+title: "Clinical report"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+
+```{r load packages, echo = FALSE}
+
+
+for (i in c("plyr", "dplyr", "tidyr", "png", "readr", "knitr")){
+  
+  if (!require(i, character.only = T)){
+  install.packages(i)
+  require(i)}
+  
+}
+
+
+```
+
+
+
+```{r load data, echo=FALSE, warnings=FALSE}
+
+
+#mask <- read_delim("mask.txt", delim=" ")
+
+#import all data
+  subjects <- list.files(path="../../Data/Raw/Headache/", pattern=".txt")
+
+  subjects <- gsub("_hit_concussion.txt","",subjects)
+  subjects <- gsub("_headache_direct.txt","",subjects)
+  subjects <- gsub("_headache_direct","",subjects)
+  subjects <- gsub("_headache_ifpresent.txt","",subjects)
+  subjects <- gsub("_headache_now.txt","",subjects)
+  subjects <- gsub(".csv","",subjects)
+
+# make a subject list  
+  subj_list <- unique(subjects)
+
+#repeat loop for different conditions
+  for (type in c("hit_concussion", "headache_direct", "headache_ifpresent", "headache_now")){
+
+# make empty matrix to fill with subject data at group level    
+  cum_mat <- matrix(0, nrow = 768, ncol = 1024)
+  
+# make empty matrix to fill with subject data at individual level    
+  mat = matrix(0, nrow = 768, ncol = 1024)
+
+#repeat loop for every subject  
+   for (subj in subj_list){
+#only for baseline measurements
+  if((as.numeric(subj) < 1100010) == TRUE){
+
+# echo the subject and cpondidtion for which processing is performed        
+print(paste0("processing: ", type, " ", subj))
+
+# adapt script so that empty matrices can be used
+
+  #read data of subject, with a list of all coordinates that were indicated
+  all_data <- read.delim(paste("../../Data/Raw/Headache/",subj,"_",type,".txt", sep=""), sep=" ")
+  
+  # remove double data
+  all_data <- unique(all_data)
+  
+  # creat seperate lists for x coordinates and y coordinates
+  if (nrow(all_data)>1){
+    all_coords <- separate(all_data, position_xy, c("x", "y"), sep=",")
+
+    # calculate scaling for resolution of recording
+    width_scaling <- all_coords$width/1024
+    height_scaling <- all_coords$height/768
+
+    # convert strings to integers
+    all_coords$x <- strtoi(all_coords$x)
+    all_coords$y <- strtoi(all_coords$y)
+    
+    #flip data across the y-axis
+    all_coords$y <- all_coords$y*-1
+
+    #apply scaling for resolution of recording to data
+    all_coords$x <- (all_coords$x/all_coords$height)*width_scaling
+    all_coords$y <- (all_coords$y/all_coords$height)*height_scaling
+
+    maxx = (unique(all_coords$width)/unique(all_coords$height)/2)
+    minx = maxx*-1
+    maxy = (unique(all_coords$height)/unique(all_coords$height)/2)
+    miny = maxy*-1
+
+    # load template of skull
+    img<-readPNG("template.png")
+
+    #display template and use rater image for visualization of matrix at the individual level
+    plot(0:0,xlim=c(minx, maxx),ylim=c(miny, maxy),axes=F,xlab='',ylab='')
+    rasterImage(img,minx,miny,maxx,maxy)
+    points(all_coords$x,all_coords$y,pch=19,col='red')
+
+    # skip matrix generation if it already exists
+      if(file.exists(paste("../../Data/Databases/Headache/matrices/", subj, "_", type, ".txt", sep=""))==TRUE){
+    
+    # load the pre-existing matrix
+    mat <- read.delim(paste0("../../Data/Databases/Headache/matrices/", subj, "_", type, ".txt"), sep="\t")
+
+  } else {
+    
+    # if matrix does not exist, make the matrix
+    
+    #first an empty matrix for individual data
+    mat = matrix(0, nrow = 768, ncol = 1024)
+    #mat = mat * mask
+    
+    #prepare dimensions for plot visualization
+    mat_x=round((all_coords$x*1024)*-1,0)+(1024/2)
+    mat_y=round((all_coords$y*768),0)+(768/2)
+
+    # set the thicknes of the pencil in pixels - this will determine the radius of each data point
+    radius = 10
+
+    # for every unique coordinate in the list, make a data point in the matrix and fill the cells wihtin the previsously defined radius - this creates the matrix
+      for (k in 1:length(mat_x)){
+        for (i in 1:radius){
+          x.index <- round(mat_x[k] + i * cos(seq(0, 2*pi, length = 360)),0)
+          y.index <- round(mat_y[k] + i * sin(seq(0, 2*pi, length = 360)),0)
+
+          for (j in seq(x.index)){
+            mat[y.index[j], x.index[j]] <- 1
+            }
+          }
+        }
+
+    # write the matrix to a file
+    write.table(mat, paste("../../Data/Databases/Headache/matrices/", subj, "_", type, ".txt", sep=""), sep="\t", col.names=F, row.names=F)
+    
+  }
+    
+  }
+  
+  # add the individual matrix to the cumulative (group) matrix
+    cum_mat <- cum_mat + mat
+
+    }
+      
+  }
+
+  # define a rotate function
+  rotate <- function(x) t(apply(x, 2, rev))
+  
+  # scale the values in the group matrix to a percentage of the highest value in the group matrix
+  cum_mat <- ((cum_mat/max(cum_mat))*100)
+  
+  #threshold the group matrix to most consistently reported observations, the threshold is a % of the highest value in the group matrix
+  
+  #set the thresholds
+  thresh <- 15
+  
+  #create a mask for thresholding
+  cum_mat_thresh_mask <- cum_mat
+  cum_mat_thresh_mask[cum_mat < thresh] <- 0
+  cum_mat_thresh_mask[cum_mat >= thresh] <- 1
+  
+  #apply thresholding to group matrix
+  cum_mat_thresh <- cum_mat * cum_mat_thresh_mask
+  
+  #visualize the thresholded group matrix
+  image(rotate(rotate(rotate(cum_mat_thresh))), col=heat.colors(max(cum_mat_thresh),0.5),xlab='',ylab='')
+
+  png('heat_overlay.png', width = 1024, height = 786)
+  par(bg=NA)
+
+  plot(0:0,xlim=c(minx, maxx),ylim=c(miny, maxy),axes=F,xlab='',ylab='')
+  image(rotate(rotate(rotate(cum_mat_thresh))),zlim=c(2,max(cum_mat_thresh)), useRaster=T, axes = F, col=heat.colors(max(cum_mat_thresh),0.3))
+  dev.off()
+  heat_overlay<-readPNG("heat_overlay.png")
+
+  png(paste('../../Data/Databases/Headache/heat_map_', type, '.png', sep=""), width = 1024, height = 786)
+  plot(0:0,xlim=c(minx, maxx),ylim=c(miny, maxy),axes=F,xlab='',ylab='')
+  rasterImage(img,minx,miny,maxx,maxy)
+  rasterImage(heat_overlay,minx+0.10,miny-0.115,maxx-0.13,maxy+0.09,interpolate=F)
+  dev.off()
+  
+  #remove the data for the next repeat in the loop
+  rm(mat)
+  rm(cum_mat)
+  rm(cum_mat_thresh)
+  rm(cum_mat_thresh_mask)
+}
+
+
+    rm(list=setdiff(ls(), c("subjects", "subj"))) 
+ 
+
+
+  
+
+
+
+
+```
+![Dr. Marsh Königs, m.konigs@amc.nl](amc.png)
+
+
+
+
+
+```

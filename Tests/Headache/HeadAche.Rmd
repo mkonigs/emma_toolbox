@@ -1,0 +1,173 @@
+---
+title: "Clinical report"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+
+```{r load packages, echo = FALSE}
+
+
+for (i in c("plyr", "dplyr", "tidyr", "png", "readr", "knitr")){
+  
+  if (!require(i, character.only = T)){
+  install.packages(i, dependencies = TRUE)
+  require(i)}
+  
+}
+
+
+```
+
+
+
+```{r load data, echo=FALSE, warnings=FALSE}
+
+
+#mask <- read_delim("mask.txt", delim=" ")
+
+  subjects <- list.files(path="../../Data/Raw/Headache/", pattern=".txt")
+
+  subjects <- gsub("_hit_concussion.txt","",subjects)
+  subjects <- gsub("_headache_direct.txt","",subjects)
+  subjects <- gsub("_headache_direct","",subjects)
+  subjects <- gsub("_headache_ifpresent.txt","",subjects)
+  subjects <- gsub("_headache_now.txt","",subjects)
+  subjects <- gsub(".csv","",subjects)
+  subj_list <- unique(subjects)
+
+  for (type in c("hit_concussion", "headache_direct", "headache_ifpresent", "headache_now")){
+  cum_mat <- matrix(0, nrow = 768, ncol = 1024)
+  mat = matrix(0, nrow = 768, ncol = 1024)
+  
+   for (subj in subj_list){
+  if((as.numeric(subj) < 1100010) == TRUE){
+        
+print(paste0("processing: ", type, " ", subj))
+
+# adapt script so that empty matrices can be used
+    
+
+    
+
+  all_data <- read.delim(paste("../../Data/Raw/Headache/",subj,"_",type,".txt", sep=""), sep=" ")
+  all_data <- unique(all_data)
+  
+  if (nrow(all_data)>1){
+    all_coords <- separate(all_data, position_xy, c("x", "y"), sep=",")
+
+    width_scaling <- all_coords$width/1024
+    height_scaling <- all_coords$height/768
+
+    all_coords$x <- strtoi(all_coords$x)
+    all_coords$y <- strtoi(all_coords$y)
+    all_coords$y <- all_coords$y*-1
+
+    all_coords$x <- (all_coords$x/all_coords$height)*width_scaling
+    all_coords$y <- (all_coords$y/all_coords$height)*height_scaling
+
+    maxx = (unique(all_coords$width)/unique(all_coords$height)/2)
+    minx = maxx*-1
+    maxy = (unique(all_coords$height)/unique(all_coords$height)/2)
+    miny = maxy*-1
+
+    img<-readPNG("template.png")
+
+    plot(0:0,xlim=c(minx, maxx),ylim=c(miny, maxy),axes=F,xlab='',ylab='')
+    rasterImage(img,minx,miny,maxx,maxy)
+    points(all_coords$x,all_coords$y,pch=19,col='red')
+
+      if(file.exists(paste("../../Data/Databases/Headache/matrices/", subj, "_", type, ".txt", sep=""))==TRUE){
+    
+    mat <- read.delim(paste0("../../Data/Databases/Headache/matrices/", subj, "_", type, ".txt"), sep="\t")
+
+  } else {
+    
+    mat = matrix(0, nrow = 768, ncol = 1024)
+    #mat = mat * mask
+    mat_x=round((all_coords$x*1024)*-1,0)+(1024/2)
+    mat_y=round((all_coords$y*768),0)+(768/2)
+
+    radius = 10
+
+      for (k in 1:length(mat_x)){
+        for (i in 1:radius){
+          x.index <- round(mat_x[k] + i * cos(seq(0, 2*pi, length = 360)),0)
+          y.index <- round(mat_y[k] + i * sin(seq(0, 2*pi, length = 360)),0)
+
+          for (j in seq(x.index)){
+            mat[y.index[j], x.index[j]] <- 1
+            }
+          }
+        }
+
+    write.table(mat, paste("../../Data/Databases/Headache/matrices/", subj, "_", type, ".txt", sep=""), sep="\t", col.names=F, row.names=F)
+    
+  }
+    
+  }
+  
+    cum_mat <- cum_mat + mat
+
+    }
+      
+  }
+
+    
+  rotate <- function(x) t(apply(x, 2, rev))
+  
+  cum_mat <- ((cum_mat/max(cum_mat))*100)
+  thresh <- 15
+  cum_mat_thresh_mask <- cum_mat
+  cum_mat_thresh_mask[cum_mat < thresh] <- 0
+  cum_mat_thresh_mask[cum_mat >= thresh] <- 1
+  
+  cum_mat_thresh <- cum_mat * cum_mat_thresh_mask
+    
+  image(rotate(rotate(rotate(cum_mat_thresh))), col=heat.colors(max(cum_mat_thresh),0.5),xlab='',ylab='')
+
+  png('heat_overlay.png', width = 1024, height = 768)
+  par(bg=NA)
+
+  plot(0:0,xlim=c(minx, maxx),ylim=c(miny, maxy),axes=F,xlab='',ylab='')
+  image(rotate(rotate(rotate(cum_mat_thresh))),zlim=c(2,max(cum_mat_thresh)), useRaster=T, axes = F, col=heat.colors(max(cum_mat_thresh),0.3))
+  dev.off()
+  heat_overlay<-readPNG("heat_overlay.png")
+
+  png(paste('../../Data/Databases/Headache/heat_map_', type, '.png', sep=""), width = 1024, height = 768)
+  plot(0:0,xlim=c(minx, maxx),ylim=c(miny, maxy),axes=F,xlab='',ylab='')
+  rasterImage(img,minx,miny,maxx,maxy)
+  rasterImage(heat_overlay,minx+0.10,miny-0.115,maxx-0.13,maxy+0.09,interpolate=F)
+  dev.off()
+  
+  rm(mat)
+  rm(cum_mat)
+  rm(cum_mat_thresh)
+  rm(cum_mat_thresh_mask)
+}
+
+
+    rm(list=setdiff(ls(), c("subjects", "subj"))) 
+ 
+
+
+  
+
+
+
+
+```
+![Dr. Marsh Königs, m.konigs@amc.nl](amc.png)
+
+
+
+
+
+```
