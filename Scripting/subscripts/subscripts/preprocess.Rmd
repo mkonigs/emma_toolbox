@@ -1,0 +1,126 @@
+---
+title: "Preprocess"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# usage
+source("../../ipak.R")
+packages <- c("tidyr")
+ipak(packages)
+
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r preprocess, echo=FALSE, warning=FALSE}
+
+# information processing
+mrt_neutral <- et_raw$mrt_neutral
+sd_neutral <- (et_raw$sd_neutral / et_raw$mrt_neutral) * 100
+tau <- (et_raw$tau / et_raw$mrt_neutral) * 100
+
+# attention control
+alerting_mrt <- (et_raw$mrt_cue /et_raw$mrt_fixation) * 100
+orienting_mrt <- (et_raw$mrt_spatial / et_raw$mrt_cue) * 100
+exec_mrt <- (et_raw$mrt_incongruent / et_raw$mrt_congruent) * 100 # lager is beter
+exec_acc <- (et_raw$acc_incongruent / et_raw$acc_congruent) * 100 # hoger is beter
+
+# visual memory
+if(center!="Ajax"){
+  vis_mem_enc <- et_raw$encoding_sum.x}else{
+  vis_mem_enc <- et_raw$encoding_sum
+}
+
+# verbal memory
+if(center!="Ajax"){
+  ver_mem_enc <- et_raw$encoding_sum.y}else{
+    ver_mem_enc <- et_raw$encoding_sum
+  }
+
+# visual working memory
+if(center!="Ajax"){
+  et_raw$visualWM_vooruit_corr.x <- as.numeric(et_raw$vooruit_corr.x)
+  et_raw$visualWM_vooruit_span.x <- as.numeric(et_raw$vooruit_span.x)
+  vis_wm_enc <- et_raw$visualWM_vooruit_corr.x * et_raw$visualWM_vooruit_span.x
+
+  et_raw$visualWM_achteruit_corr.x <- as.numeric(et_raw$achteruit_corr.x)
+  et_raw$visualWM_achteruit_span.x <- as.numeric(et_raw$achteruit_span.x)
+  vis_wm_bw <- et_raw$visualWM_achteruit_corr.x * et_raw$visualWM_achteruit_span.x
+  vis_wm_ce <- (vis_wm_bw /vis_wm_enc) * 100}else{
+    
+    et_raw$visualWM_vooruit_corr <- as.numeric(et_raw$vooruit_corr)
+    et_raw$visualWM_vooruit_span <- as.numeric(et_raw$vooruit_span)
+    vis_wm_enc <- et_raw$visualWM_vooruit_corr * et_raw$visualWM_vooruit_span
+
+    et_raw$visualWM_achteruit_corr <- as.numeric(et_raw$achteruit_corr)
+    et_raw$visualWM_achteruit_span <- as.numeric(et_raw$achteruit_span)
+    vis_wm_bw <- et_raw$visualWM_achteruit_corr * et_raw$visualWM_achteruit_span
+    vis_wm_ce <- (vis_wm_bw /vis_wm_enc) * 100}
+
+
+if(center!="Ajax"){
+# verbal working memory
+  et_raw$verbalWM_vooruit_corr.y <- as.numeric(et_raw$vooruit_corr.y)
+  et_raw$verbalWM_vooruit_span.y <- as.numeric(et_raw$vooruit_span.y)
+  ver_wm_enc <- et_raw$verbalWM_vooruit_corr.y * et_raw$verbalWM_vooruit_span.y
+  
+  et_raw$verbalWM_achteruit_corr.y <- as.numeric(et_raw$achteruit_corr.y)
+  et_raw$verbalWM_achteruit_span.y <- as.numeric(et_raw$achteruit_span.y)
+  ver_wm_bw <- et_raw$verbalWM_achteruit_corr.y * et_raw$verbalWM_achteruit_span.y
+  ver_wm_ce <- (ver_wm_bw /ver_wm_enc) * 100
+  }
+
+
+# visuomotor integration
+visuom_random_d <- et_raw$overall_random_m
+visuom_speed_d <- (et_raw$mean_dev_random_8) / (et_raw$mean_dev_random_2) * 100
+motor_response <- et_raw$motor_response
+
+```
+
+```{r select }
+
+# select the relevant variables from database
+et_select_base <- et_raw[c("subj", "test", "group")]
+et_select_proc <- data.frame(mrt_neutral, sd_neutral, tau)
+et_select_att_ctrl <- data.frame(alerting_mrt, orienting_mrt, exec_mrt, exec_acc)
+
+if(center!="Ajax"){
+  et_select_mem <- data.frame(vis_mem_enc, ver_mem_enc)}else{
+    et_select_mem <- data.frame(vis_mem_enc)}
+
+if(center!="Ajax"){
+  et_select_wm <- data.frame(vis_wm_enc, vis_wm_ce, ver_wm_enc, ver_wm_ce)}else{
+    et_select_wm <- data.frame(vis_wm_enc, vis_wm_ce)}
+  
+et_select_visuom <- data.frame(visuom_random_d, visuom_speed_d, motor_response)
+
+
+et_select <- data.frame(et_select_base, et_select_proc, et_select_att_ctrl, et_select_mem, et_select_wm, et_select_visuom)
+et_select_comp <- et_select
+
+#transform variables to the same direction: higher score = better performance
+et_select_comp$mrt_neutral <- -1 * et_select_comp$mrt_neutral
+et_select_comp$sd_neutral <- -1 * et_select_comp$sd_neutral
+et_select_comp$tau <- -1 * et_select_comp$tau
+
+et_select_comp$alerting_mrt <- -1 * et_select_comp$alerting_mrt
+et_select_comp$orienting_mrt <- -1 * et_select_comp$orienting_mrt
+et_select_comp$exec_mrt <- -1 * et_select_comp$exec_mrt
+
+et_select_comp$vis_mem_enc <- -1 * et_select_comp$vis_mem_enc
+
+et_select_comp$visuom_random_d <- -1 * et_select_comp$visuom_random_d
+et_select_comp$visuom_speed_d <- -1 * et_select_comp$visuom_speed_d
+et_select_comp$motor_response <- -1 * et_select_comp$motor_response
+
+
+```
+

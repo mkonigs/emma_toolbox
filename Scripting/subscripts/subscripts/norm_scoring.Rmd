@@ -1,0 +1,105 @@
+---
+title: "Exploring the Neurocognome"
+output:
+  html_document: default
+  word_document: default
+---
+
+```{r setup_, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# formulate automatic package installer and loader
+ipak <- function(pkg){
+    new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+    if (length(new.pkg)) 
+        install.packages(new.pkg, dependencies = TRUE)
+    sapply(pkg, require, character.only = TRUE)
+}
+
+# list required packages
+packages <- c("readr", "reshape2", "gridExtra", "psych", "dplyr", "DescTools", "Rmisc", "grid", "ggplot2", "ggpubr", "lubridate", "tidyr")
+
+#load required packages
+ipak(packages)
+
+
+
+```
+
+# Get data
+
+```{r data}
+
+# DETERMINE COVARIATES
+covs <- "age"
+
+# GET DATA FOR SUBJECT AND CALCULATE AGE
+exp <- et_domains[which(et_domains$group==1),]
+dob <- read.table("../../../../emma_toolbox_data/Norms/dob.txt", stringsAsFactors = FALSE)
+
+  if( nchar(dob) > 2){
+    dob <- dmy(dob)
+    exp$test<- ymd(exp$test)
+    exp$age <- as.numeric((exp$test-dob)/365.25)}
+
+
+# GET DATA FOR CONTROLS
+ctrl <- et_domains[which(et_domains$group == 0),]
+ctrl_demo <- select(ctrl_demo, c(subj, covs))
+
+#
+if(length(grep("_", ctrl_demo$subj)) > 0 ){
+ctrl_demo <-  ctrl_demo %>% separate(subj, c("subj", "test"), sep="_")
+}
+          
+ctrl <- merge(ctrl, ctrl_demo, by="subj")
+
+# SET AS LONGITUDINAL
+long <- TRUE
+
+```
+
+```{r functions}
+
+# MAKE EACH TIMEPOINT UNIQUE ALSO FOR REPEATED MEASURES
+exp$subj <- paste0(exp$subj, "_", exp$test)
+ctrl$subj <- paste0(ctrl$subj, "_", ctrl$test)
+
+ctrl <- ctrl[,which(colnames(ctrl) %in% colnames(exp))]
+exp <- exp[,which(colnames(exp) %in% colnames(ctrl))]
+
+all <- rbind(exp, ctrl)
+all <- na.omit(all)
+
+# GET FUNCTION
+rmarkdown::render("norm_score_machine.Rmd")
+
+# PERFORM NORM SCORING
+all_normed <- norm_score_machine(all, ctrl, "subj", covs)
+
+exp_normed <- all_normed[which(all_normed$group==1),]
+ctrl_normed <- all_normed[which(all_normed$group==0),]
+exp_normed <- exp_normed[,-which(colnames(exp_normed) %in% c("group", "group_"))]
+
+if(long==TRUE){
+  
+  #separate subject and date
+exp_normed <- separate(exp_normed, "subj", c("subj", "test"), sep="_")
+ctrl_normed <- separate(ctrl_normed, "subj", c("subj", "test"), sep="_")
+}
+
+# ROUND UP
+exp_normed[-which(colnames(exp_normed) %in% c("subj", "test",covs))] <- round(exp_normed[-which(colnames(exp_normed) %in% c("subj", "test", covs))],2)
+
+
+# WRITE
+  write.table(exp_normed, paste0("../../../../emma_toolbox_data/Files/", subj, "/", emmadate, "/Databases/domains_data_", subj, ".txt", sep=""), row.names = F)
+  write.table(exp_normed, paste0("../../../../emma_toolbox_data/Databases/Domains/domains_data_", subj, "_",emmadate, ".txt", sep=""), row.names = F)
+  
+
+exp_normed <- select(exp_normed, -c(covs))
+
+age_standardized <- "yes"
+```
+
+

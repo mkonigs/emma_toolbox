@@ -1,0 +1,238 @@
+---
+title: "Clinical report"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup verbal mem, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+
+```{r load packages, include=FALSE}
+
+if (!require(plyr)) {
+    install.packages("plyr", dependencies = TRUE)
+    require(plyr)
+}
+
+if (!require(readr)) {
+    install.packages("readr", dependencies = TRUE)
+    require(readr)
+}
+
+if (!require(cowplot)) {
+    install.packages("cowplot", dependencies = TRUE)
+    require(cowplot)
+}
+
+if (!require(png)) {
+    install.packages("png", dependencies = TRUE)
+    require(png)
+}
+
+if (!require(knitr)) {
+    install.packages("knitr", dependencies = TRUE)
+    require(knitr)
+}
+
+if (!require(gridExtra)) {
+    install.packages("gridExtra", dependencies = TRUE)
+    require(gridExtra)
+}
+
+if (!require(ggplot2)) {
+    install.packages("ggplot2", dependencies = TRUE)
+    require(ggplot2)
+}
+
+library(plyr)
+library(readr)
+library(cowplot)
+library(png)
+library(knitr)
+library(gridExtra)
+
+```
+
+![Dr. Marsh Königs, m.konigs@amc.nl](amc.png)
+
+___
+
+##Verbal Memory Test
+
+```{r load data, echo=FALSE, warning = FALSE}
+
+all_data <- read_csv(paste("../../../emma_toolbox_data/Raw/VerbalMemory/verbalmem-subject-",subj,".csv",sep=""), col_types = cols())
+all_data_delay <- read_csv(paste("../../../emma_toolbox_data/Raw/VerbalMemory/verbalmem-vervolg-subject-",subj,".csv",sep=""), col_types = cols())
+
+```
+
+```{r test details, echo = FALSE, warning = FALSE}
+os_version <- unique(all_data$opensesame_version)
+test_version <- unique(all_data$experiment_file)
+time <- (unique(all_data$datetime))
+backend <- unique(all_data$canvas_backend)
+subject <- subj
+
+Test <- c("Open Sesame Version", "Test version", "Date and Time", "Backend", "Subject")
+Details <- c(os_version, test_version, time, backend, subj)
+
+mytestdetails <- data.frame(Test, Details)
+
+kable(mytestdetails, format="markdown", caption="Test details", align="l")
+
+```
+
+###Task Performance
+```{r test performance in table, echo = FALSE, warning = FALSE}
+
+all_data_test <- all_data
+all_data_encoding <- all_data_test[1:5,]
+all_data_retrieval <- all_data_delay[1,]
+all_data_recognition <- all_data_delay[2,]
+
+encoding <- all_data_encoding$correct
+
+encoding_1 <- round(all_data_encoding$correct[1],1)
+selected_items_1 <- all_data_encoding$selected_items[1]
+
+encoding_2 <- round(all_data_encoding$correct[2],1)
+selected_items_2 <- all_data_encoding$selected_items[2]
+
+encoding_3 <- round(all_data_encoding$correct[3],1)
+selected_items_3 <- all_data_encoding$selected_items[3]
+
+encoding_4 <- round(all_data_encoding$correct[4],1)
+selected_items_4 <- all_data_encoding$selected_items[4]
+
+encoding_5 <- round(all_data_encoding$correct[5],1)
+selected_items_5 <- all_data_encoding$selected_items[5]
+
+encoding_sum <- encoding_1 + encoding_2 + encoding_3 + encoding_4 + encoding_5
+encoding_incorrect <- sum(all_data_encoding$incorrect)
+encoding_double <- sum(all_data_encoding$double)
+  
+retrieval <- all_data_retrieval$correct[1]
+retrieval_incorrect <- sum(all_data_retrieval$incorrect)
+retrieval_double <- sum(all_data_retrieval$double)
+
+selected_items_retrieval <- all_data_retrieval$selected_items[1]
+
+recognition_correct <- as.numeric(all_data_recognition$correct[1])
+selected_items_recognition <- all_data_recognition$selected_words[1]
+recognition_incorrect <- all_data_recognition$incorrect[1]
+recognition_fp <- all_data_recognition$incorrect_neg[1]
+recognition_fn <- all_data_recognition$incorrect_pos[1]
+
+
+Metric <- c("Direct Recall 1", "Direct Recall 2", "Direct Recall 3", "Direct Recall 4", "Direct Recall 5", "Encoding Total", "Encoding Double", "Encoding Incorrect", "Delayed Recall Correct", "Delayed Recall Double", "Delayed Recall Incorrect", "Recognition Correct", "  False positives", "  False negatives")
+Value <- c(encoding_1, encoding_2, encoding_3, encoding_4, encoding_5, encoding_sum, encoding_double, encoding_incorrect, retrieval, retrieval_double, retrieval_incorrect, recognition_correct, recognition_fp, recognition_fn)
+
+myoverall <- data.frame(Metric, Value)
+
+kable(myoverall,format="markdown", caption="Direct Recall, Delayed Recall, Recognition")
+```
+
+```{r test performance in figure, echo=FALSE, warning = FALSE}
+
+Trial <- c("1", "2", "3", "4", "5")
+Correct <- encoding
+encoding_data <- data.frame(Trial, Correct)
+
+plot_e <- ggplot(encoding_data, aes(x = Trial, y= Correct, group=1)) + geom_point() + geom_line() + theme_cowplot() + ggtitle ("Direct Recall")
+
+Trial <- c("DR")
+Correct <- retrieval
+retrieval_data <- data.frame(Trial, Correct)
+
+ymin <- encoding[5]
+ymax <- encoding[1]
+plot_r <- ggplot(retrieval_data, aes(x = Trial, y= Correct)) + geom_point() + theme_cowplot() + ylim(ymin,ymax) + ggtitle("Delayed Recall")
+
+plot_grid(plot_e, plot_r)
+
+```
+
+**Legend.** Task performance in each condition of the Visual Memory Test, assessing encoding, retrieval and consolidation.
+
+###Answers
+####Template
+```{r template, echo=FALSE}
+
+print(selected_items_1)
+
+```
+
+####Trial 1
+```{r trial1, echo=FALSE}
+
+print(selected_items_1)
+
+```
+
+####Trial 2
+```{r trial2, echo=FALSE}
+
+print(selected_items_2)
+```
+
+####Trial 3
+```{r trial3, echo=FALSE}
+
+print(selected_items_3)
+```
+
+####Trial 4
+```{r trial4, echo=FALSE}
+
+print(selected_items_4)
+```
+
+####Trial 5
+```{r trial5, echo=FALSE}
+
+print(selected_items_5)
+```
+
+####Delayed Recall
+```{r delayed recall, echo=FALSE}
+
+print(selected_items_retrieval)
+```
+
+####Recognition
+```{r recognition, echo=FALSE}
+
+print(selected_items_recognition)
+```
+```
+
+
+```{r construct data file, results = 'asis', echo = FALSE}
+if (!require(lubridate)) {
+    install.packages("lubridate")
+    require(lubridate)
+}
+
+date <- c(strsplit(time," "))
+date <- unlist(date)
+date <- date[1]
+test <- mdy(date)
+
+verbalmt_data <- data.frame(subj, test, encoding_1, encoding_2, encoding_3, encoding_4, encoding_5, encoding_sum, retrieval, recognition_correct, recognition_fp, recognition_fn)
+
+#write.table(verbalmt_data, paste("output/verbalmt_data", subj, ".txt", sep=""), sep="\t")
+
+if (exists("all_verbalmt_data") == TRUE){
+  rm(list=setdiff(ls(), c("subjects", "all_verbalmt_data", "j", "subj", "verbalmt_data")))
+}
+
+if (exists("all_verbalmt_data") == FALSE){
+rm(list=setdiff(ls(), c("subjects", "j", "subj", "verbalmt_data")))
+}
+
+```

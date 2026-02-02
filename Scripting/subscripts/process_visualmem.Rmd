@@ -1,0 +1,270 @@
+---
+title: "Clinical report"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup visual mem, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+
+```{r load packages, include=FALSE}
+
+if (!require(plyr)) {
+    install.packages("plyr", dependencies = TRUE)
+    require(plyr)
+}
+
+if (!require(readr)) {
+    install.packages("readr", dependencies = TRUE)
+    require(readr)
+}
+
+if (!require(cowplot)) {
+    install.packages("cowplot", dependencies = TRUE)
+    require(cowplot)
+}
+
+if (!require(png)) {
+    install.packages("png", dependencies = TRUE)
+    require(png)
+}
+
+if (!require(knitr)) {
+    install.packages("knitr", dependencies = TRUE)
+    require(knitr)
+}
+
+if (!require(gridExtra)) {
+    install.packages("gridExtra", dependencies = TRUE)
+    require(gridExtra)
+}
+
+library(plyr)
+library(readr)
+library(cowplot)
+library(png)
+library(knitr)
+library(gridExtra)
+
+```
+
+![Dr. Marsh Königs, m.konigs@amc.nl](amc.png)
+
+___
+
+##Visual Memory Test
+
+```{r load data, echo=FALSE}
+
+all_data <- read_csv(paste("../../../emma_toolbox_data/Raw/VisualMemory/visualmem-subject-",subj,".csv",sep=""), col_types = cols())
+
+if(file.exists(paste("../../../emma_toolbox_data/Raw/VisualMemory/visualmem-vervolg-subject-",subj,".csv",sep="")) == TRUE){
+  
+  all_data_delay <- read_csv(paste("../../../emma_toolbox_data/Raw/VisualMemory/visualmem-vervolg-subject-",subj,".csv",sep=""), col_types = cols())
+  delay_exists <- TRUE
+}
+
+
+
+```
+
+```{r test details, echo = FALSE}
+os_version <- unique(all_data$opensesame_version)
+test_version <- unique(all_data$experiment_file)
+time <- (unique(all_data$datetime))
+backend <- unique(all_data$canvas_backend)
+subject <- subj
+
+Test <- c("Open Sesame Version", "Test version", "Date and Time", "Backend", "Subject")
+Details <- c(os_version, test_version, time, backend, subj)
+
+mytestdetails <- data.frame(Test, Details)
+
+kable(mytestdetails, format="markdown", caption="Test details", align="l")
+
+```
+
+###Task Performance
+```{r test performance in table, echo = FALSE}
+
+all_data_test <- all_data
+all_data_encoding <- all_data_test[which(is.na(all_data_test$C_distance)==FALSE),]
+
+
+
+encoding <- all_data_encoding$trial_distance
+encoding_1 <- round(all_data_encoding$trial_distance[1],1)
+encoding_2 <- round(all_data_encoding$trial_distance[2],1)
+encoding_3 <- round(all_data_encoding$trial_distance[3],1)
+encoding_4 <- round(all_data_encoding$trial_distance[4],1)
+encoding_5 <- round(all_data_encoding$trial_distance[5],1)
+encoding_sum <- encoding_1 + encoding_2 + encoding_3 + encoding_4 + encoding_5
+
+if(exists("delay_exists") == TRUE){
+
+all_data_retrieval <- all_data_delay[1,]
+all_data_recognition <- all_data_delay[ which(all_data_delay$Recognition_trial!="NA"), ]
+
+retrieval <- all_data_retrieval$retrieval_distance
+recognition_correct <- all_data_recognition$recognition_correct[length( all_data_recognition$recognition_correct)]
+recognition_incorrect <- all_data_recognition$recognition_incorrect[length( all_data_recognition$recognition_correct)]
+recognition_fp <- all_data_recognition$recognition_fp[length(all_data_recognition$recognition_correct)]
+recognition_fn <- all_data_recognition$recognition_fn[length(all_data_recognition$recognition_correct)]
+}
+
+if(exists("delay_exists") == FALSE){
+  
+
+retrieval <- NA
+recognition_correct <- NA
+recognition_incorrect <- NA
+recognition_fp <- NA
+recognition_fn <- NA
+}
+
+Metric <- c("Direct Recall 1", "Direct Recall 2", "Direct Recall 3", "Direct Recall 4", "Direct Recall 5", "Encoding Total", "Delayed Recall", "Recognition Correct", "  False positives", "  False negatives")
+Value <- c(encoding_1, encoding_2, encoding_3, encoding_4, encoding_5, encoding_sum, retrieval, recognition_correct, recognition_fp, recognition_fn)
+
+myoverall <- data.frame(Metric, Value)
+
+kable(myoverall,format="markdown", caption="Direct Recall, Delayed Recall, Recognition")
+```
+
+```{r test performance in figure, echo=FALSE}
+
+Trial <- c("1", "2", "3", "4", "5")
+Distance <- encoding
+encoding_data <- data.frame(Trial, Distance)
+
+plot_e <- ggplot(encoding_data, aes(x = Trial, y= Distance, group=1)) + geom_point() + geom_line() + theme_cowplot() + ggtitle ("Direct Recall")
+
+Trial <- c("DR")
+Distance <- retrieval
+retrieval_data <- data.frame(Trial, Distance)
+
+ymin <- encoding[5]
+ymax <- encoding[1]
+plot_r <- ggplot(retrieval_data, aes(x = Trial, y= Distance, group=1)) + geom_point() + geom_line() + theme_cowplot() + ylim(ymin,ymax) + ggtitle("Delayed Recall")
+
+if(exists("delay_exists") == TRUE){
+
+plot_grid(plot_e, plot_r)
+  
+}
+
+if(exists("delay_exists") == FALSE){
+
+plot_grid(plot_e)
+  
+}
+
+```
+
+**Legend.** Task performance in each condition of the Visual Memory Test, assessing encoding, retrieval and consolidation.
+
+###Answers
+####Template
+```{r template, echo=FALSE}
+
+if(file.exists(paste(paste("../../Data/Raw/VisualMemory/Snaps/",subj,sep=""), "_Template.png",sep=""))==T){
+  
+
+
+patht <- paste(paste("../../Data/Raw/VisualMemory/Snaps/",subj,sep=""), "_Template.png",sep="")
+include_graphics(patht)
+  
+}
+```
+
+####Trial 1
+```{r trial1, echo=FALSE}
+
+if(file.exists(paste(paste("../../Data/Raw/VisualMemory/Snaps/",subj,sep=""), "_DirectRecall_1.png",sep=""))==T){
+ 
+   path1 <- paste(paste("../../Data/Raw/VisualMemory/Snaps/",subj,sep=""), "_DirectRecall_1.png",sep="")
+  include_graphics(path1)
+
+  }
+```
+
+####Trial 2
+```{r trial2, echo=FALSE}
+if(file.exists(paste(paste("../../Data/Raw/VisualMemory/Snaps/",subj,sep=""), "_DirectRecall_2.png",sep=""))==T){
+
+  path2 <- paste(paste("../../Data/Raw/VisualMemory/Snaps/",subj,sep=""), "_DirectRecall_2.png",sep="")
+  include_graphics(path2)
+  
+}
+```
+
+####Trial 3
+```{r trial3, echo=FALSE}
+if(exists(paste(paste("../../Data/Raw/VisualMemory/Snaps/",subj,sep=""), "_DirectRecall_3.png",sep=""))==T){
+0
+  path3 <- paste(paste("../../Data/Raw/VisualMemory/Snaps/",subj,sep=""), "_DirectRecall_3.png",sep="")
+  include_graphics(path3)
+  
+}
+```
+
+####Trial 4
+```{r trial4, echo=FALSE}
+if(file.exists(paste(paste("../../Data/Raw/VisualMemory/Snaps/",subj,sep=""), "_DirectRecall_4.png",sep=""))==T){
+  
+  path4 <- paste(paste("../../Data/Raw/VisualMemory/Snaps/",subj,sep=""), "_DirectRecall_4.png",sep="")
+  include_graphics(path4)
+}
+```
+
+####Trial 5
+```{r trial5, echo=FALSE}
+if(file.exists( path5 <- paste(paste("../../Data/Raw/VisualMemory/Snaps/",subj,sep=""), "_DirectRecall_5.png",sep=""))==T){
+
+  path5 <- paste(paste("../../Data/Raw/VisualMemory/Snaps/",subj,sep=""), "_DirectRecall_5.png",sep="")
+  include_graphics(path5)
+  
+}
+
+  
+```
+
+####Delayed Recall
+```{r delayed recall, echo=FALSE}
+if(file.exists(pathdr <- paste(paste("../../Data/Raw/VisualMemory/Snaps/",subj,sep=""), "_DelayedRecall.png",sep=""))==T){
+
+  pathdr <- paste(paste("../../Data/Raw/VisualMemory/Snaps/",subj,sep=""), "_DelayedRecall.png",sep="")
+  include_graphics(pathdr)
+  
+}
+```
+
+```{r construct data file, results = 'asis', echo = FALSE}
+
+if (!require(lubridate)) {
+    install.packages("lubridate", dependencies = TRUE)
+    require(lubridate)
+}
+
+date <- c(strsplit(time," "))
+date <- unlist(date)
+date <- date[1]
+test <- mdy(date)
+
+visualmt_data <- data.frame(subj, test, encoding_1, encoding_2, encoding_3, encoding_4, encoding_5, encoding_sum, retrieval, recognition_correct, recognition_fp, recognition_fn)
+
+#write.table(visualmt_data, paste("output/visualmt_data", subj, ".txt", sep=""), sep="\t")
+
+if (exists("all_vmt_data") == TRUE){
+  rm(list=setdiff(ls(), c("subjects", "all_visualmt_data", "j", "subj", "visualmt_data")))
+}
+
+if (exists("all_visualmt_data") == FALSE){
+rm(list=setdiff(ls(), c("subjects", "j", "subj", "visualmt_data")))
+}
+
+```

@@ -1,0 +1,127 @@
+---
+title: "Preprocess"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+```{r apply_to_new_data, echo=FALSE, include=FALSE}
+
+et_select_comp <- et_select_imp
+
+#replace infinite with NA
+et_select_comp[mapply(is.infinite, et_select_comp)] <- NA
+
+# replace NaN with NA
+et_select_comp[mapply(is.nan, et_select_comp)] <- NA
+
+# write subject data to separate variable
+subject <- et_select_comp$subj
+
+# remove variables from dataset
+et_select_comp_pca <- et_select_comp
+
+if ("subj" %in% colnames(et_select_comp_pca)){
+  et_select_comp_pca <- select(et_select_comp_pca, -c(subj))
+}
+
+if ("test" %in% colnames(et_select_comp_pca)){
+  et_select_comp_pca <- select(et_select_comp_pca, -c(test))
+}
+
+if ("subj_" %in% colnames(et_select_comp_pca)){
+  et_select_comp_pca <- select(et_select_comp_pca, -c(subj_))
+}
+
+if ("Group.1" %in% colnames(et_select_comp_pca)){
+  et_select_comp_pca <- select(et_select_comp_pca, -c(Group.1))
+}
+
+#replace infinite with NA
+et_select_comp_pca[mapply(is.infinite, et_select_comp_pca)] <- NA
+
+# replace NaN with NA
+et_select_comp_pca[mapply(is.nan, et_select_comp_pca)] <- NA
+
+# transformeer naar z-scores en maak er een dataframe van
+group <- et_select_comp_pca$group
+et_scaled <- as.data.frame(scale(et_select_comp_pca, center = T, scale = T))
+et_scaled$group <- group
+
+# calculate domain scores
+#### PROCESSING ####
+proc_sp <- et_scaled$mrt_neutral
+consis <- et_scaled$tau
+proc_stab <- et_scaled$sd_neutral
+
+d_proc <- (proc_sp + consis + proc_stab)/3
+
+
+#### ATTENTION CONTROL ####
+orient <- et_scaled$orienting_mrt
+exec_acc <- et_scaled$exec_acc
+exec_mrt <- et_scaled$exec_mrt
+alerting_mrt <- et_scaled$alerting_mrt
+
+d_att_ctrl <- (orient + exec_acc + exec_mrt + alerting_mrt) / 4
+
+  
+#### MEMORY ####
+if(center!="Ajax"){
+  vis_mem_enc <- et_scaled$vis_mem_enc
+  ver_mem_enc <- et_scaled$ver_mem_enc
+  d_mem <- (vis_mem_enc + ver_mem_enc)/2}else{
+    vis_mem_enc <- et_scaled$vis_mem_enc
+    d_mem <- (vis_mem_enc)
+  }
+
+
+if(center!="Ajax"){
+### VERBAL WORKING MEMORY ####
+  ver_wm_enc <- et_scaled$ver_wm_enc
+  ver_wm_ce <- et_scaled$ver_wm_ce
+  d_ver_wm <- (ver_wm_enc + ver_wm_ce)/2}
+
+
+### VISUAL WORKING MEMORY ###
+vis_wm_enc <- et_scaled$vis_wm_enc
+vis_wm_ce <- et_scaled$vis_wm_ce
+
+d_vis_wm <- (vis_wm_enc + vis_wm_ce)/2
+
+
+### VISUOMOTOR INTEGRATION ###
+
+visuom_speed <- et_scaled$visuom_speed_d
+visuom_trace <- et_scaled$visuom_random_d
+motor_inh <- et_scaled$motor_response
+
+d_visuom <- (visuom_trace + motor_inh)/2
+
+if(center!="Ajax"){
+  et_domains <- data.frame(subject, d_proc, d_att_ctrl, d_mem, d_ver_wm, d_vis_wm, d_visuom)}else{
+    et_domains <- data.frame(subject, d_proc, d_att_ctrl, d_mem, d_vis_wm, d_visuom)}
+
+et_domains <- na.omit(et_domains)
+
+et_scaled <- data.frame(subject, et_scaled)
+et_domains <- merge(et_domains, et_scaled, by="subject")
+
+#separate subject and date
+et_domains <- separate(et_domains, "subject", c("subj", "test"), sep="_")
+
+et_domains_data <- et_domains
+
+
+```

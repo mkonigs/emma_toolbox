@@ -1,0 +1,114 @@
+---
+title: "Clinical report"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+
+```{r load packages, include=FALSE}
+
+if (!require(plyr)) {
+    install.packages("plyr", dependencies = TRUE)
+    require(plyr)
+}
+
+if (!require(readr)) {
+    install.packages("readr", dependencies = TRUE)
+    require(readr)
+}
+
+if (!require(cowplot)) {
+    install.packages("cowplot", dependencies = TRUE)
+    require(cowplot)
+}
+
+if (!require(scatterplot3d)) {
+    install.packages("scatterplot3d", dependencies = TRUE)
+    require(scatterplot3d)
+}
+
+if (!require(knitr)) {
+    install.packages("knitr", dependencies = TRUE)
+    require(knitr)
+}
+
+
+```
+
+![Dr. Marsh Königs, m.konigs@amc.nl](amc.png)
+
+___
+
+##Verbaal Werkgeheugen
+
+```{r load data, include=FALSE, echo=FALSE}
+all_data <- read_csv(paste("../../../emma_toolbox_data/Raw/VerbalWM/verbalwm-subject-",subj,".csv",sep=""), col_types = cols())
+
+
+```
+
+
+```{r test details, echo = FALSE}
+os_version <- unique(all_data$opensesame_version)
+test_version <- unique(all_data$experiment_file)
+time <- (unique(all_data$datetime))
+backend <- unique(all_data$canvas_backend)
+subject <- subj
+
+Test <- c("Open Sesame versie", "Test versie", "Datum en Tijd", "Backend", "Subject")
+Details <- c(os_version, test_version, time, backend, subj)
+
+mytestdetails <- data.frame(Test, Details)
+
+kable(mytestdetails, format="markdown", caption="Test details", align="l")
+
+```
+
+___
+
+###Taakprestatie
+```{r global overview of task performance, echo=FALSE}
+vooruit_corr <- max(all_data$vooruit_corr)
+vooruit_span <- max(all_data$vooruit_max_span)
+
+achteruit_corr <- max(all_data$achteruit_corr)
+achteruit_span <- max(all_data$achteruit_max_span)
+
+totaal_corr <- vooruit_corr + achteruit_corr
+
+Metric <- c("Vooruit (correct)", "Vooruit (spanne)", "Achteruit (correct)", "Achteruit (spanne)", "Totaal (correct)")
+Value <- c(vooruit_corr, vooruit_span, achteruit_corr, achteruit_span, totaal_corr)
+
+myverbalwm <- data.frame(Metric, Value)
+
+kable(myverbalwm, format="markdown", caption="Information Processing")
+
+```
+___
+
+
+```{r construct data file, results = 'asis', echo = FALSE}
+
+if (!require(lubridate)) {
+    install.packages("lubridate", dependencies = TRUE)
+    require(lubridate)
+}
+
+date <- c(strsplit(time," "))
+date <- unlist(date)
+date <- date[1]
+test <- mdy(date)
+
+verbalwm_data <- data.frame(subj, test, vooruit_corr, vooruit_span, achteruit_corr, achteruit_span)
+
+#write.table(verbalwm_data, paste("output/verbalwm_data_", subj, ".txt", sep=""), sep="\t")
+
+
+```

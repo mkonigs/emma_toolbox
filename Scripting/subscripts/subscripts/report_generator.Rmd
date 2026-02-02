@@ -1,0 +1,1398 @@
+---
+title: "Emma Toolbox for Neurocognitive Functioning"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+
+![](amc.png)
+Emma Neuroscience Group,
+Dr. Marsh Königs & Prof. dr. Jaap Oosterlaan
+
+
+
+## Report
+
+```{r setup_domains_, include = FALSE}
+
+# to fix the source problem when installing packages
+options(repos=list(CRAN="http://cran.rstudio.com/"))
+
+#devtools::install_github("lionel-/ggstance", upgrade = F)
+
+library(ggstance)
+```
+
+
+```{r load_packages, echo = FALSE, include = FALSE}
+
+
+# ipak function: install and load multiple R packages.
+# check to see if packages are installed. Install them if they are not, then load them into the R session.
+
+ipak <- function(pkg){
+    new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+    if (length(new.pkg)) 
+        install.packages(new.pkg, dependencies = TRUE)
+    sapply(pkg, require, character.only = TRUE)
+}
+
+# istall packages
+pkg <- c("mice", "reshape2", "readr", "psych", "ggplot2", "lubridate", "kableExtra", "dplyr")
+ipak(pkg)
+
+```
+
+
+
+```{r load_data, echo=FALSE, include=FALSE}
+
+all_data <- read_csv(paste("../../../../emma_toolbox_data/Raw/Attention/attention-subject-", subj,".csv",sep=""), col_types = cols())
+
+ant_data <- data.frame(subj)
+
+```
+
+
+## Details of assessment
+
+```{r test_details, echo = FALSE}
+
+Test <- c()
+Details <- c()
+
+
+if (exists("opensesame_version", all_data) == TRUE){
+  os_version <- unique(all_data$opensesame_version)
+  Test <- c(Test, "OS Version")
+  Details <- c(Details, os_version)
+}
+
+if (exists("experiment_file", all_data) == TRUE){
+  test_version <- unique(all_data$experiment_file)
+  Test <- c(Test, "Test Version")
+  Details <- c(Details, test_version)
+}
+
+if (exists("meting", all_data) == TRUE){
+  meting <- unique(all_data$meting)
+  Test <- c(Test, "Measurement Type")
+  Details <- c(Details, meting)
+  ant_data <- data.frame(ant_data, meting)
+}
+
+if (exists("datetime", all_data) == TRUE){
+  time <- unique(all_data$datetime)
+  Test <- c(Test, "Date and time")
+  Details <- c(Details, time[1])
+}
+
+if (exists("canvas_backend", all_data) == TRUE){
+  backend <- unique(all_data$canvas_backend)
+  Test <- c(Test, "Backend")
+  Details <- c(Details, backend)
+}
+
+date <- c(strsplit(time," "))
+date <- unlist(date)
+date <- date[1]
+test <- mdy(date)
+
+if ((exists("dob") == TRUE) & (exists("time") == TRUE)){
+  dob <- unique(all_data$geboortedatum)
+  dobi <- dmy(dob)
+  age <- as.numeric((test-dobi)/365)
+  }
+
+if (exists("age", mode="variable") == TRUE){
+  ant_data <- data.frame(ant_data, age)
+  Test <- c(Test, "Age of Subject")
+  Details <- c(Details, age)
+}
+
+
+mytestdetails <- data.frame(Test, Details)
+
+kable(mytestdetails, format="markdown", caption="Test details", align="l")
+
+
+```
+
+
+```{r define_rci_, include=FALSE}
+
+rci_calc <- function(data, var, trr, t1, t2){
+
+  # get sd from control group
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)  
+
+  #calc rci
+sem <- std * (sqrt(1-trr))
+sed <- sqrt(2*(sem*sem))
+diff <- eval(parse(text = paste0("ET_subj$", var)))[i] - eval(parse(text = paste0("ET_subj$", var)))[j] 
+sd_change <- diff/std
+rci <- diff/sed
+
+  #calc p-value
+p_rci <- round(pnorm(abs(rci), lower.tail = FALSE),3)*2
+
+rci_results <- list("sd_change" = sd_change, "RCI" = rci, "Pval" = c(p_rci), "diff" = diff)
+return(rci_results)
+}
+
+
+
+
+```
+
+
+## Control group
+
+```{r control_, echo=FALSE}
+
+# GET DEMO DATA AND MATCH WITH ACTUALLY USED CONTROLS
+ctrl_demo <- read.table(paste0("../../../../emma_toolbox_data/Norms/", pop, "_age.txt"), header = TRUE, sep=" ")
+  
+print(paste0("The selected control group consists of ", nrow(ctrl_demo), " individuals, with an average age of ", round(mean(ctrl_demo$age),1), " years (range: ", round(min(ctrl_demo$age),1), " - ", round(max(ctrl_demo$age),1),")"))
+
+# PRINT SUBJ DATA
+exp <- separate(all_normed[which(all_normed$group==1),], "subj", c("subj", "test"), sep="_")
+ages <- select(exp, c(test, age))
+ages$age <- round(ages$age,1)
+print("Normed scores were calculated using the following ages: ")
+
+kable(ages, format="markdown", align="l")
+
+      
+```
+
+
+
+## Overview
+
+```{r domains, echo=FALSE, warning = FALSE, results='asis'}
+
+
+
+# get rid of the list if only one row
+if(nrow(exp_normed)==1){
+  et_domains_all <- data.frame(t(unlist(exp_normed)))
+  }else{
+  et_domains_all <- as.data.frame(exp_normed)}
+
+# transorm to numeric
+vars <- colnames(et_domains_all)
+vars <- vars[vars!="subj"]
+vars <- vars[vars!="test"]
+for (i in vars){
+  et_domains_all[,which(colnames(et_domains_all) %in% i)] <- as.numeric(as.character(et_domains_all[,which(colnames(et_domains_all) %in% i)]))}
+
+# factorize date for long formatting   
+et_domains_all$test <- as.factor(as.Date(et_domains_all$test))
+
+# filter only the data for our subject
+et_domains <- et_domains_all[which(et_domains_all$subj==as.numeric(as.character(subj))),][1,]
+
+### Domains
+
+test <- et_select_imp[grep(as.numeric(as.character(subj)), et_select_imp$subj),]$test
+#et_domains_all <- data.frame(test, et_domains_all)
+et_domains_all$test <- as.factor(as.Date(et_domains_all$test))
+
+if(center!="Ajax"){
+  et_domains_all_sel <- select(et_domains_all, c(test, d_visuom, d_vis_wm, d_ver_wm, d_mem, d_att_ctrl, d_proc))
+  colnames(et_domains_all_sel) <- c("Date", "Visuomotor Integration", "Visual Working Memory", "Verbal Working Memory", "Memory" ,"Attention Control", "Information Processing")}else{
+    et_domains_all_sel <- select(et_domains_all, c(test, d_visuom, d_vis_wm, d_mem, d_att_ctrl, d_proc))
+  colnames(et_domains_all_sel) <- c("Date", "Visuomotor Integration", "Visual Working Memory", "Memory" ,"Attention Control", "Information Processing")}
+  
+
+et_domains_all_long <- melt(et_domains_all_sel, id.vars=c("Date"))
+et_domains_all_long <- et_domains_all_long[et_domains_all_long$variable!="Date",]
+et_domains_all_long <- et_domains_all_long[et_domains_all_long$variable!="subj",]
+et_domains_all_long <- et_domains_all_long[et_domains_all_long$variable!="age",]
+
+colnames(et_domains_all_long) <- c("Date", "Domains", "Score")
+
+ystart <- 0.5
+yend <- 7.5
+
+ggplot(data = et_domains_all_long, aes(x=Score, y=Domains, group = Date, colour=Date)) + geom_rect(aes(xmin = -1, xmax = 1), ymin = ystart, ymax = yend, alpha = 0.05, fill="green", colour=NA) + geom_rect(aes(xmin = -2, xmax = -1), ymin = ystart, ymax = yend, alpha = 0.05, fill="yellow", colour=NA) + geom_rect(aes(xmin = -Inf, xmax = -2), ymin = ystart, ymax = yend, alpha = 0.05, fill="red", colour=NA) + geom_rect(aes(xmin = 1, xmax = 2), ymin = ystart, ymax = yend, alpha = 0.10, fill="green", colour=NA) + geom_rect(aes(xmin = 2, xmax = Inf), ymin = ystart, ymax = yend, alpha = 0.15, fill="green", colour=NA) + geom_errorbarh(aes(x = Score, xmin=Score-0.75, xmax=Score+0.75), width=.2, size =.3, position = position_dodgev(height = .5)) + geom_point(size=3, position = position_dodgev(height = .5)) + ggtitle("Emma Toolbox - Domains") + theme(plot.title = element_text(hjust = 0.5)) + geom_vline(xintercept = c(0), color = "grey", size=0.5) + xlab ("Performance (z-score ± .75 SD)") + ylab("Neurocognitive Domain")
+
+
+##### RCI #####
+
+CTRL <- as.data.frame(ctrl_normed)
+CTRL <- CTRL[-grep(as.numeric(as.character(subj)), CTRL$subj),]
+
+# define variables
+if(center!="Ajax"){
+  vars <- c("d_proc", "d_att_ctrl", "d_mem", "d_ver_wm", "d_vis_wm", "d_visuom")
+  dirs <- c("pos", "pos", "pos", "pos", "pos", "pos")
+  des <- c("Information Processing", "Attention Control", "Memory", "Verbal Working Memory", "Visual Working Memory", "Visuomotor Integration")
+  trrs <- c(NA, NA, NA, NA, NA, NA)
+  scales <-c("z-score", "z-score", "z-score", "z-score", "z-score", "z-score")
+  summary <- data.frame(vars, dirs, des, trrs, scales)}else{
+    vars <- c("d_proc", "d_att_ctrl", "d_mem", "d_vis_wm", "d_visuom")
+    dirs <- c("pos", "pos", "pos", "pos", "pos")
+    des <- c("Information Processing", "Attention Control", "Memory", "Visual Working Memory", "Visuomotor Integration")
+    trrs <- c(NA, NA, NA, NA, NA)
+    scales <-c("z-score", "z-score", "z-score", "z-score", "z-score")
+    summary <- data.frame(vars, dirs, des, trrs, scales)  
+  }
+
+
+
+# select the measurements for RCI
+ET_subj <- et_domains_all
+ET_subj$test <- as.Date(ET_subj$test)
+
+if (nrow(ET_subj)>1){
+  
+s=1
+for (var in vars){
+
+rci_table <- data.frame(matrix(NA, (nrow=nrow(ET_subj)*(nrow(ET_subj)-1)/2), ncol=4))
+colnames(rci_table) <- c("Timepoint", "SD change", "RCI-index", "P-Value")
+
+z=1
+k=1:nrow(ET_subj)
+for (i in k){
+  for (j in k){
+    
+    if (j>i){
+      rci_results <- rci_calc(ET_subj, var, trrs[s], i, j)
+      
+      p1 <- ""
+      p1[sqrt(rci_results$sd_change*rci_results$sd_change)>1.5] <- "*"
+      
+      p2 <- ""
+      p2[rci_results$Pval<.05] <- "*"
+      p2[rci_results$Pval<.01] <- "**"
+      p2[rci_results$Pval<.001] <- "***"
+      
+      #write to table
+      rci_table[z,1] <- paste0("T", i, " vs ", "T", j)
+      rci_table[z,2] <- paste0(round(rci_results$sd_change,2),p1)
+      rci_table[z,3] <- paste0(round(rci_results$RCI,2),p2)
+      rci_table[z,4] <- round(rci_results$Pval,3)
+
+      z=z+1
+     }
+    }
+}
+
+assign(paste("rci_table_", var, sep = ""), rci_table)
+
+
+
+# plots
+
+
+#higher is poorer
+if (dirs[s]=="neg"){
+
+ann <- "Lower values reflect better performance"
+
+m <- mean(eval(parse(text = paste0("CTRL$", var))),na.rm=TRUE)
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+
+cut_1 <- -Inf
+cut_2 <- m+std
+cut_3 <- m + 2*std
+cut_4 <- Inf
+}
+
+# higher is better
+if (dirs[s]=="pos"){
+ann <- "Higher values reflect better performance"
+m <- mean(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+
+cut_1 <- Inf
+cut_2 <- m-std
+cut_3 <- m-2*std
+cut_4 <- -Inf
+
+}
+
+m <- mean(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+
+t_diff <- as.numeric(ET_subj$test[length(ET_subj$test)]-ET_subj$test[1])
+
+t_unit <- "month"
+t_set <- "%b"
+t_adj <- 7
+
+
+if (t_diff < 30){
+  
+  t_unit <- "week"
+  t_set <- "%d"
+  t_adj <- 3
+}
+
+if (t_diff < 14){
+  
+  t_unit <- "day"
+  t_set <- "%a"
+  t_adj <- 1
+  
+}
+
+  
+plot <- ggplot(data = ET_subj, aes(x=test, y=eval(parse(text = var)))) + 
+  
+  scale_x_date(date_breaks = t_unit, date_labels = c(t_set)) + 
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = 2, ymax = Inf, alpha = 0.15, fill="green") +
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = 1, ymax = 2, alpha = 0.10, fill="green") +
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = -1, ymax = 1, alpha = 0.05, fill="green") + 
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = -2, ymax = -1, alpha = 0.05, fill="yellow") + 
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = -Inf, ymax = -2, alpha = 0.05, fill="red") + 
+  
+  geom_point(aes(color = factor(test)), size=3) + 
+  
+  geom_smooth(method='loess', se=FALSE) + 
+  
+  ggtitle(paste0(des[s])) + theme(plot.title = element_text(hjust = 0.5)) +
+  
+  labs(
+    x = paste0("Time (", t_unit, "s)"),
+    y = scales[s],
+    color = "Test date",
+    caption = ann) +
+  
+  expand_limits(y=c(-2,2)) +
+  
+  geom_errorbar(aes(ymin=eval(parse(text = var))-0.75, ymax=eval(parse(text = var))+0.75, color = factor(test)), width=.5)
+
+assign(paste("plot_", var, sep = ""), plot)
+assign(paste("plot_", var, sep = ""), plot)
+assign(paste("plot_", var, sep = ""), plot)
+
+suppressWarnings(suppressWarnings(print(plot)))
+print(kable(rci_table, format="markdown", caption="* P<.05, ** P<.01, *** P<.001", align="l"))
+
+Legend <- " "
+Values <- "* P<.05, ** P<.01, *** P<.001"
+Leg <- data.frame(Legend, Values)
+
+print(kable(Leg, format="markdown", align="l", caption="* P<.05, ** P<.01, *** P<.001"))
+
+s=s+1
+
+}
+
+} else {
+  
+  print("No repeated measures found.")
+  
+}
+  
+  
+
+  
+```
+
+Note. Higher scores reflect better performance.
+
+### Domain: Speed
+
+
+```{r Processing, echo=FALSE, warning = FALSE, results='asis'}
+
+### Processing
+et_domains_all_sel <- select(et_domains_all, c(test, tau, sd_neutral, mrt_neutral))
+
+colnames(et_domains_all_sel) <- c("Date", "Processing Consistency", "Processing Stability", "Processing speed")
+
+et_domains_all_long <- melt(et_domains_all_sel, id="Date")
+et_domains_all_long <- et_domains_all_long[et_domains_all_long$variable!="Date",]
+et_domains_all_long <- et_domains_all_long[et_domains_all_long$variable!="subj",]
+et_domains_all_long <- et_domains_all_long[et_domains_all_long$variable!="age",]
+
+colnames(et_domains_all_long) <- c("Date", "Domains", "Score")
+
+ystart <- 0.5
+yend <- 3.5
+
+ggplot(data = et_domains_all_long, aes(x=Score, y=Domains, group = Date, colour=Date)) + geom_rect(aes(xmin = -1, xmax = 1), ymin = ystart, ymax = yend, alpha = 0.05, fill="green", colour=NA) + geom_rect(aes(xmin = -2, xmax = -1), ymin = ystart, ymax = yend, alpha = 0.05, fill="yellow", colour=NA) + geom_rect(aes(xmin = -Inf, xmax = -2), ymin = ystart, ymax = yend, alpha = 0.05, fill="red", colour=NA) + geom_rect(aes(xmin = 1, xmax = 2), ymin = ystart, ymax = yend, alpha = 0.10, fill="green", colour=NA) + geom_rect(aes(xmin = 2, xmax = Inf), ymin = ystart, ymax = yend, alpha = 0.15, fill="green", colour=NA) + geom_errorbarh(aes(x = Score, xmin=Score-0.75, xmax=Score+0.75), width=.2, size =.3, position = position_dodgev(height = .5)) + geom_point(size=3, position = position_dodgev(height = .5)) + ggtitle("Domain Exploration - Speed") + theme(plot.title = element_text(hjust = 0.5)) + geom_vline(xintercept = c(0), color = "grey", size=0.5) + xlab ("Performance (z-score ± .75 SD)") + ylab("Neurocognitive Function")
+
+
+# define variables
+vars <- c("proc_sp", "visuom_acc", "motor_inh")
+dirs <- c("pos", "pos", "pos")
+des <- c("Processing speed", "Visuomotor Precision", "Motor Response Inhibition")
+trrs <- c(NA, NA, NA)
+
+scales <-c("Tau as percentage of MRT (z-score)", "SD as percentage of MRT (z-score)", "Mean Reaction Time (z-score)")
+
+summary <- data.frame(vars, dirs, des, trrs, scales)
+
+
+
+# select the measurements for RCI
+ET_subj <- et_domains_all
+
+if (nrow(ET_subj)>1){
+  
+s=1
+for (var in vars){
+
+rci_table <- data.frame(matrix(NA, (nrow=nrow(ET_subj)*(nrow(ET_subj)-1)/2), ncol=4))
+colnames(rci_table) <- c("Timepoint", "SD change", "RCI-index", "P-Value")
+
+z=1
+k=1:nrow(ET_subj)
+for (i in k){
+  for (j in k){
+    
+    if (j>i){
+      rci_results <- rci_calc(ET_subj, var, trrs[s], i, j)
+      
+      p1 <- ""
+      p1[sqrt(rci_results$sd_change*rci_results$sd_change)>1.5] <- "*"
+      
+      p2 <- ""
+      p2[rci_results$Pval<.05] <- "*"
+      p2[rci_results$Pval<.01] <- "**"
+      p2[rci_results$Pval<.001] <- "***"
+      
+      #write to table
+      rci_table[z,1] <- paste0("T", i, " vs ", "T", j)
+      rci_table[z,2] <- paste0(round(rci_results$sd_change,2),p1)
+      rci_table[z,3] <- paste0(round(rci_results$RCI,2),p2)
+      rci_table[z,4] <- round(rci_results$Pval,3)
+
+      z=z+1
+     }
+    }
+}
+
+assign(paste("rci_table_", var, sep = ""), rci_table)
+
+
+
+# plots
+
+test <- et_select_imp[grep(as.numeric(as.character(subj)), et_select_imp$subj),]$test
+ET_subj <- data.frame(test, ET_subj)
+ET_subj$test <- as.Date(ET_subj$test)
+
+#higher is poorer
+if (dirs[s]=="neg"){
+
+ann <- "Lower values reflect better performance"
+
+m <- mean(eval(parse(text = paste0("CTRL$", var))),na.rm=TRUE)
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+
+cut_1 <- -Inf
+cut_2 <- m+std
+cut_3 <- m + 2*std
+cut_4 <- Inf
+}
+
+# higher is better
+if (dirs[s]=="pos"){
+ann <- "Higher values reflect better performance"
+m <- mean(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+
+cut_1 <- Inf
+cut_2 <- m-std
+cut_3 <- m-2*std
+cut_4 <- -Inf
+
+}
+
+m <- mean(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+t_diff <- as.numeric(ET_subj$test[length(ET_subj$test)]-ET_subj$test[1])
+
+t_unit <- "month"
+t_set <- "%b"
+t_adj <- 7
+
+
+if (t_diff < 30){
+  
+  t_unit <- "week"
+  t_set <- "%d"
+  t_adj <- 3
+}
+
+if (t_diff < 14){
+  
+  t_unit <- "day"
+  t_set <- "%a"
+  t_adj <- 1
+  
+}
+
+  
+plot <- ggplot(data = ET_subj, aes(x=test, y=eval(parse(text = var)))) + 
+  
+  scale_x_date(date_breaks = t_unit, date_labels = c(t_set)) + 
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = 2, ymax = Inf, alpha = 0.15, fill="green") +
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = 1, ymax = 2, alpha = 0.10, fill="green") +
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = -1, ymax = 1, alpha = 0.05, fill="green") + 
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = -2, ymax = -1, alpha = 0.05, fill="yellow") + 
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = -Inf, ymax = -2, alpha = 0.05, fill="red") + 
+  
+  geom_point(aes(color = factor(test)), size=3) + 
+  
+  geom_smooth(method='loess', se=FALSE) + 
+  
+  ggtitle(paste0(des[s])) + theme(plot.title = element_text(hjust = 0.5)) +
+  
+  labs(
+    x = paste0("Time (", t_unit, "s)"),
+    y = scales[s],
+    color = "Test date",
+    caption = ann) +
+  
+  expand_limits(y=c(-2,2)) +
+  
+  geom_errorbar(aes(ymin=eval(parse(text = var))-0.75, ymax=eval(parse(text = var))+0.75, color = factor(test)), width=.2)
+
+assign(paste("plot_", var, sep = ""), plot)
+assign(paste("plot_", var, sep = ""), plot)
+assign(paste("plot_", var, sep = ""), plot)
+
+suppressWarnings(suppressWarnings(print(plot)))
+print(kable(rci_table, format="markdown", caption="* P<.05, ** P<.01, *** P<.001", align="l"))
+
+Legend <- " "
+Values <- "* P<.05, ** P<.01, *** P<.001"
+Leg <- data.frame(Legend, Values)
+
+print(kable(Leg, format="markdown", align="l", caption="* P<.05, ** P<.01, *** P<.001"))
+
+s=s+1
+
+}
+
+} else {
+  
+  print("No repeated measures found.")
+  
+}
+  
+
+
+
+```
+
+Note. Higher scores reflect better performance.
+
+### Domain: Stability
+
+
+
+
+### Domains: Attention Control
+
+```{r attention_control, echo=FALSE, warning = FALSE, results='asis'}
+
+### Attention Control
+et_domains_all_sel <- select(et_domains_all, c(test, exec_acc, exec_mrt, orienting_mrt, alerting_mrt))
+
+colnames(et_domains_all_sel) <- c("Date", "Interference Control Accuracy", "Interference Control Speed", "Orienting Attention", "Alerting Attention")
+
+et_domains_all_long <- melt(et_domains_all_sel, id="Date")
+et_domains_all_long <- et_domains_all_long[et_domains_all_long$variable!="Date",]
+et_domains_all_long <- et_domains_all_long[et_domains_all_long$variable!="subj",]
+et_domains_all_long <- et_domains_all_long[et_domains_all_long$variable!="age",]
+
+colnames(et_domains_all_long) <- c("Date", "Domains", "Score")
+
+ystart <- 0.5
+yend <- 6.5
+
+ggplot(data = et_domains_all_long, aes(x=Score, y=Domains, group = Date, colour=Date)) + geom_rect(aes(xmin = -1, xmax = 1), ymin = ystart, ymax = yend, alpha = 0.05, fill="green", colour=NA) + geom_rect(aes(xmin = -2, xmax = -1), ymin = ystart, ymax = yend, alpha = 0.05, fill="yellow", colour=NA) + geom_rect(aes(xmin = -Inf, xmax = -2), ymin = ystart, ymax = yend, alpha = 0.05, fill="red", colour=NA) + geom_rect(aes(xmin = 1, xmax = 2), ymin = ystart, ymax = yend, alpha = 0.10, fill="green", colour=NA) + geom_rect(aes(xmin = 2, xmax = Inf), ymin = ystart, ymax = yend, alpha = 0.15, fill="green", colour=NA) + geom_errorbarh(aes(x = Score, xmin=Score-0.75, xmax=Score+0.75), width=.2, size =.3, position = position_dodgev(height = .5)) + geom_point(size=3, position = position_dodgev(height = .5)) + ggtitle("Domain Exploration - Memory") + theme(plot.title = element_text(hjust = 0.5)) + geom_vline(xintercept = c(0), color = "grey", size=0.5) + xlab ("Performance (z-score ± .75 SD)") + ylab("Neurocognitive Function")
+
+
+#### RCI ####
+
+# define variables
+vars <- c("alert", "orient", "int_cont_sp", "int_cont_acc")
+dirs <- c("pos", "pos", "pos", "pos")
+des <- c("Alerting Attention", "Orienting Attention", "Interference Control Speed", "Interference Control Accuracy")
+trrs <- c(NA, NA, NA, NA)
+
+scales <-c("Relative change in MRT (z-score)", " Relative Change in MRT (z-score)", "Relative Change in MRT (z-score)", "Relative Change in Accuracy (z-score)")
+
+summary <- data.frame(vars, dirs, des, trrs, scales)
+
+
+
+# select the measurements for RCI
+ET_subj <- et_domains_all
+
+if (nrow(ET_subj)>1){
+  
+s=1
+for (var in vars){
+
+rci_table <- data.frame(matrix(NA, (nrow=nrow(ET_subj)*(nrow(ET_subj)-1)/2), ncol=4))
+colnames(rci_table) <- c("Timepoint", "SD change", "RCI-index", "P-Value")
+
+z=1
+k=1:nrow(ET_subj)
+for (i in k){
+  for (j in k){
+    
+    if (j>i){
+      rci_results <- rci_calc(ET_subj, var, trrs[s], i, j)
+      
+      p1 <- ""
+      p1[sqrt(rci_results$sd_change*rci_results$sd_change)>1.5] <- "*"
+      
+      p2 <- ""
+      p2[rci_results$Pval<.05] <- "*"
+      p2[rci_results$Pval<.01] <- "**"
+      p2[rci_results$Pval<.001] <- "***"
+      
+      #write to table
+      rci_table[z,1] <- paste0("T", i, " vs ", "T", j)
+      rci_table[z,2] <- paste0(round(rci_results$sd_change,2),p1)
+      rci_table[z,3] <- paste0(round(rci_results$RCI,2),p2)
+      rci_table[z,4] <- round(rci_results$Pval,3)
+
+      z=z+1
+     }
+    }
+}
+
+assign(paste("rci_table_", var, sep = ""), rci_table)
+
+
+
+# plots
+
+test <- et_select_imp[grep(as.numeric(as.character(subj)), et_select_imp$subj),]$test
+ET_subj <- data.frame(test, ET_subj)
+ET_subj$test <- as.Date(ET_subj$test)
+
+#higher is poorer
+if (dirs[s]=="neg"){
+
+ann <- "Lower values reflect better performance"
+
+m <- mean(eval(parse(text = paste0("CTRL$", var))),na.rm=TRUE)
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+
+cut_1 <- -Inf
+cut_2 <- m+std
+cut_3 <- m + 2*std
+cut_4 <- Inf
+}
+
+# higher is better
+if (dirs[s]=="pos"){
+ann <- "Higher values reflect better performance"
+m <- mean(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+
+cut_1 <- Inf
+cut_2 <- m-std
+cut_3 <- m-2*std
+cut_4 <- -Inf
+
+}
+
+m <- mean(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+t_diff <- as.numeric(ET_subj$test[length(ET_subj$test)]-ET_subj$test[1])
+
+t_unit <- "month"
+t_set <- "%b"
+t_adj <- 7
+
+
+if (t_diff < 30){
+  
+  t_unit <- "week"
+  t_set <- "%d"
+  t_adj <- 3
+}
+
+if (t_diff < 14){
+  
+  t_unit <- "day"
+  t_set <- "%a"
+  t_adj <- 1
+  
+}
+
+  
+plot <- ggplot(data = ET_subj, aes(x=test, y=eval(parse(text = var)))) + 
+  
+  scale_x_date(date_breaks = t_unit, date_labels = c(t_set)) + 
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = 2, ymax = Inf, alpha = 0.15, fill="green") +
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = 1, ymax = 2, alpha = 0.10, fill="green") +
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = -1, ymax = 1, alpha = 0.05, fill="green") + 
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = -2, ymax = -1, alpha = 0.05, fill="yellow") + 
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = -Inf, ymax = -2, alpha = 0.05, fill="red") + 
+  
+  geom_point(aes(color = factor(test)), size=3) + 
+  
+  geom_smooth(method='loess', se=FALSE) + 
+  
+  ggtitle(paste0(des[s])) + theme(plot.title = element_text(hjust = 0.5)) +
+  
+  labs(
+    x = paste0("Time (", t_unit, "s)"),
+    y = scales[s],
+    color = "Test date",
+    caption = ann) +
+  
+  expand_limits(y=c(-2,2)) +
+  
+  geom_errorbar(aes(ymin=eval(parse(text = var))-0.75, ymax=eval(parse(text = var))+0.75, color = factor(test)), width=.2)
+
+
+assign(paste("plot_", var, sep = ""), plot)
+assign(paste("plot_", var, sep = ""), plot)
+assign(paste("plot_", var, sep = ""), plot)
+
+suppressWarnings(suppressWarnings(print(plot)))
+print(kable(rci_table, format="markdown", caption="* P<.05, ** P<.01, *** P<.001", align="l"))
+
+Legend <- " "
+Values <- "* P<.05, ** P<.01, *** P<.001"
+Leg <- data.frame(Legend, Values)
+
+print(kable(Leg, format="markdown", align="l", caption="* P<.05, ** P<.01, *** P<.001"))
+
+s=s+1
+
+}
+
+} else {
+  
+  print("No repeated measures found.")
+  
+}
+  
+
+```
+
+Note. Higher scores reflect better performance.
+
+### Domains: Memory
+
+```{r memory, echo=FALSE, warning = FALSE, results='asis'}
+
+### Memory
+et_domains_all_sel <- select(et_domains_all, c(test, vis_mem_enc, ver_mem_enc))
+
+colnames(et_domains_all_sel) <- c("Date", "Visual Encoding", "Verbal Encoding")
+
+et_domains_all_long <- melt(et_domains_all_sel, id="Date")
+et_domains_all_long <- et_domains_all_long[et_domains_all_long$variable!="Date",]
+et_domains_all_long <- et_domains_all_long[et_domains_all_long$variable!="subj",]
+et_domains_all_long <- et_domains_all_long[et_domains_all_long$variable!="age",]
+
+colnames(et_domains_all_long) <- c("Date", "Domains", "Score")
+
+ystart <- 0.5
+yend <- 6.5
+
+ggplot(data = et_domains_all_long, aes(x=Score, y=Domains, group = Date, colour=Date)) + geom_rect(aes(xmin = -1, xmax = 1), ymin = ystart, ymax = yend, alpha = 0.05, fill="green", colour=NA) + geom_rect(aes(xmin = -2, xmax = -1), ymin = ystart, ymax = yend, alpha = 0.05, fill="yellow", colour=NA) + geom_rect(aes(xmin = -Inf, xmax = -2), ymin = ystart, ymax = yend, alpha = 0.05, fill="red", colour=NA) + geom_rect(aes(xmin = 1, xmax = 2), ymin = ystart, ymax = yend, alpha = 0.10, fill="green", colour=NA) + geom_rect(aes(xmin = 2, xmax = Inf), ymin = ystart, ymax = yend, alpha = 0.15, fill="green", colour=NA) + geom_errorbarh(aes(x = Score, xmin=Score-0.75, xmax=Score+0.75), width=.2, size =.3, position = position_dodgev(height = .5)) + geom_point(size=3, position = position_dodgev(height = .5)) + ggtitle("Domain Exploration - Memory") + theme(plot.title = element_text(hjust = 0.5)) + geom_vline(xintercept = c(0), color = "grey", size=0.5) + xlab ("Performance (z-score ± .75 SD)") + ylab("Neurocognitive Function")
+
+
+#### RCI ####
+
+# define variables
+vars <- c("ver_mem_enc", "vis_mem_enc")
+dirs <- c("pos", "pos")
+des <- c("Verbal Encoding", "Visual Encoding")
+trrs <- c(NA, NA, NA, NA)
+
+scales <-c("Total correct (z-score)", "Total correct (z-score)")
+
+summary <- data.frame(vars, dirs, des, trrs, scales)
+
+
+
+# select the measurements for RCI
+ET_subj <- et_domains_all
+
+if (nrow(ET_subj)>1){
+  
+s=1
+for (var in vars){
+
+rci_table <- data.frame(matrix(NA, (nrow=nrow(ET_subj)*(nrow(ET_subj)-1)/2), ncol=4))
+colnames(rci_table) <- c("Timepoint", "SD change", "RCI-index", "P-Value")
+
+z=1
+k=1:nrow(ET_subj)
+for (i in k){
+  for (j in k){
+    
+    if (j>i){
+      rci_results <- rci_calc(ET_subj, var, trrs[s], i, j)
+      
+      p1 <- ""
+      p1[sqrt(rci_results$sd_change*rci_results$sd_change)>1.5] <- "*"
+      
+      p2 <- ""
+      p2[rci_results$Pval<.05] <- "*"
+      p2[rci_results$Pval<.01] <- "**"
+      p2[rci_results$Pval<.001] <- "***"
+      
+      #write to table
+      rci_table[z,1] <- paste0("T", i, " vs ", "T", j)
+      rci_table[z,2] <- paste0(round(rci_results$sd_change,2),p1)
+      rci_table[z,3] <- paste0(round(rci_results$RCI,2),p2)
+      rci_table[z,4] <- round(rci_results$Pval,3)
+
+      z=z+1
+     }
+    }
+}
+
+assign(paste("rci_table_", var, sep = ""), rci_table)
+
+
+
+# plots
+
+test <- et_select_imp[grep(as.numeric(as.character(subj)), et_select_imp$subj),]$test
+ET_subj <- data.frame(test, ET_subj)
+ET_subj$test <- as.Date(ET_subj$test)
+
+#higher is poorer
+if (dirs[s]=="neg"){
+
+ann <- "Lower values reflect better performance"
+
+m <- mean(eval(parse(text = paste0("CTRL$", var))),na.rm=TRUE)
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+
+cut_1 <- -Inf
+cut_2 <- m+std
+cut_3 <- m + 2*std
+cut_4 <- Inf
+}
+
+# higher is better
+if (dirs[s]=="pos"){
+ann <- "Higher values reflect better performance"
+m <- mean(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+
+cut_1 <- Inf
+cut_2 <- m-std
+cut_3 <- m-2*std
+cut_4 <- -Inf
+
+}
+
+m <- mean(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+t_diff <- as.numeric(ET_subj$test[length(ET_subj$test)]-ET_subj$test[1])
+
+t_unit <- "month"
+t_set <- "%b"
+t_adj <- 7
+
+
+if (t_diff < 30){
+  
+  t_unit <- "week"
+  t_set <- "%d"
+  t_adj <- 3
+}
+
+if (t_diff < 14){
+  
+  t_unit <- "day"
+  t_set <- "%a"
+  t_adj <- 1
+  }
+
+  
+plot <- ggplot(data = ET_subj, aes(x=test, y=eval(parse(text = var)))) + 
+  
+  scale_x_date(date_breaks = t_unit, date_labels = c(t_set)) + 
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = 2, ymax = Inf, alpha = 0.15, fill="green") +
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = 1, ymax = 2, alpha = 0.10, fill="green") +
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = -1, ymax = 1, alpha = 0.05, fill="green") + 
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = -2, ymax = -1, alpha = 0.05, fill="yellow") + 
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = -Inf, ymax = -2, alpha = 0.05, fill="red") + 
+  
+  geom_point(aes(color = factor(test)), size=3) + 
+  
+  geom_smooth(method='loess', se=FALSE) + 
+  
+  ggtitle(paste0(des[s])) + theme(plot.title = element_text(hjust = 0.5)) +
+  
+  labs(
+    x = paste0("Time (", t_unit, "s)"),
+    y = scales[s],
+    color = "Test date",
+    caption = ann) +
+  
+  expand_limits(y=c(-2,2)) +
+  
+  geom_errorbar(aes(ymin=eval(parse(text = var))-0.75, ymax=eval(parse(text = var))+0.75, color = factor(test)), width=.2)
+
+
+assign(paste("plot_", var, sep = ""), plot)
+assign(paste("plot_", var, sep = ""), plot)
+assign(paste("plot_", var, sep = ""), plot)
+
+suppressWarnings(suppressWarnings(print(plot)))
+print(kable(rci_table, format="markdown", caption="* P<.05, ** P<.01, *** P<.001", align="l"))
+
+Legend <- " "
+Values <- "* P<.05, ** P<.01, *** P<.001"
+Leg <- data.frame(Legend, Values)
+
+print(kable(Leg, format="markdown", align="l", caption="* P<.05, ** P<.01, *** P<.001"))
+
+s=s+1
+
+}
+
+} else {
+  
+  print("No repeated measures found.")
+  
+}
+  
+
+```
+
+Note. Higher scores reflect better performance.
+  
+  
+
+### Domains: Working Memory
+
+```{r verbal_working_memory, echo=FALSE, warning = FALSE, results='asis'}
+
+### Working Memory
+
+if(center!="Ajax"){
+  et_domains_all_sel <- select(et_domains_all, c(test, vis_wm_ce, vis_wm_enc, ver_wm_ce, ver_wm_enc))
+  colnames(et_domains_all_sel) <- c("Date", "Visual Working Memory","Visual Short Term Memory","Verbal Working Memory", "Verbal Short Term Memory")}else{
+    et_domains_all_sel <- select(et_domains_all, c(test, vis_wm_ce, vis_wm_enc))
+    colnames(et_domains_all_sel) <- c("Date", "Visual Working Memory","Visual Short Term Memory")
+  }
+
+
+et_domains_all_long <- melt(et_domains_all_sel, id="Date")
+et_domains_all_long <- et_domains_all_long[et_domains_all_long$variable!="Date",]
+et_domains_all_long <- et_domains_all_long[et_domains_all_long$variable!="subj",]
+et_domains_all_long <- et_domains_all_long[et_domains_all_long$variable!="age",]
+
+colnames(et_domains_all_long) <- c("Date", "Domains", "Score")
+
+ystart <- 0.5
+yend <- 6.5
+
+ggplot(data = et_domains_all_long, aes(x=Score, y=Domains, group = Date, colour=Date)) + geom_rect(aes(xmin = -1, xmax = 1), ymin = ystart, ymax = yend, alpha = 0.05, fill="green", colour=NA) + geom_rect(aes(xmin = -2, xmax = -1), ymin = ystart, ymax = yend, alpha = 0.05, fill="yellow", colour=NA) + geom_rect(aes(xmin = -Inf, xmax = -2), ymin = ystart, ymax = yend, alpha = 0.05, fill="red", colour=NA) + geom_rect(aes(xmin = 1, xmax = 2), ymin = ystart, ymax = yend, alpha = 0.10, fill="green", colour=NA) + geom_rect(aes(xmin = 2, xmax = Inf), ymin = ystart, ymax = yend, alpha = 0.15, fill="green", colour=NA) + geom_errorbarh(aes(x = Score, xmin=Score-0.75, xmax=Score+0.75), width=.2, size =.3, position = position_dodgev(height = .5)) + geom_point(size=3, position = position_dodgev(height = .5)) + ggtitle("Domain Exploration - Working Memory") + theme(plot.title = element_text(hjust = 0.5)) + geom_vline(xintercept = c(0), color = "grey", size=0.5) + xlab ("Performance (z-score ± .75 SD)") + ylab("Neurocognitive Function")
+
+
+
+#### RCI ####
+
+if(center!="Ajax"){
+  # define variables
+  vars <- c("ver_wm_enc", "ver_wm_ce", "vis_wm_enc", "vis_wm_ce")
+  dirs <- c("pos", "pos", "pos", "pos")
+  des <- c("Verbal Short Term Memory", "Verbal Working Memory", "Visual Short Term Memory", "Visual Working Memory")
+  trrs <- c(NA, NA, NA, NA)
+  scales <-c("Total correct (z-score)", "Difference in correct (z-score)", "Total correct (z-score)", "Difference in correct (z-score)")
+  summary <- data.frame(vars, dirs, des, trrs, scales)}else{
+    # define variables
+    vars <- c("vis_wm_enc", "vis_wm_ce")
+    dirs <- c("pos", "pos")
+    des <- c("Visual Short Term Memory", "Visual Working Memory")
+    trrs <- c(NA, NA)
+    scales <-c("Total correct (z-score)", "Difference in correct (z-score)")
+    summary <- data.frame(vars, dirs, des, trrs, scales)}
+
+
+# select the measurements for RCI
+ET_subj <- et_domains_all
+
+if (nrow(ET_subj)>1){
+  
+s=1
+for (var in vars){
+
+rci_table <- data.frame(matrix(NA, (nrow=nrow(ET_subj)*(nrow(ET_subj)-1)/2), ncol=4))
+colnames(rci_table) <- c("Timepoint", "SD change", "RCI-index", "P-Value")
+
+z=1
+k=1:nrow(ET_subj)
+for (i in k){
+  for (j in k){
+    
+    if (j>i){
+      rci_results <- rci_calc(ET_subj, var, trrs[s], i, j)
+      
+      p1 <- ""
+      p1[sqrt(rci_results$sd_change*rci_results$sd_change)>1.5] <- "*"
+      
+      p2 <- ""
+      p2[rci_results$Pval<.05] <- "*"
+      p2[rci_results$Pval<.01] <- "**"
+      p2[rci_results$Pval<.001] <- "***"
+      
+      #write to table
+      rci_table[z,1] <- paste0("T", i, " vs ", "T", j)
+      rci_table[z,2] <- paste0(round(rci_results$sd_change,2),p1)
+      rci_table[z,3] <- paste0(round(rci_results$RCI,2),p2)
+      rci_table[z,4] <- round(rci_results$Pval,3)
+
+      z=z+1
+     }
+    }
+}
+
+assign(paste("rci_table_", var, sep = ""), rci_table)
+
+
+
+# plots
+
+test <- et_select_imp[grep(as.numeric(as.character(subj)), et_select_imp$subj),]$test
+ET_subj <- data.frame(test, ET_subj)
+ET_subj$test <- as.Date(ET_subj$test)
+
+#higher is poorer
+if (dirs[s]=="neg"){
+
+ann <- "Lower values reflect better performance"
+
+m <- mean(eval(parse(text = paste0("CTRL$", var))),na.rm=TRUE)
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+
+cut_1 <- -Inf
+cut_2 <- m+std
+cut_3 <- m + 2*std
+cut_4 <- Inf
+}
+
+# higher is better
+if (dirs[s]=="pos"){
+ann <- "Higher values reflect better performance"
+m <- mean(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+
+cut_1 <- Inf
+cut_2 <- m-std
+cut_3 <- m-2*std
+cut_4 <- -Inf
+
+}
+
+m <- mean(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+t_diff <- as.numeric(ET_subj$test[length(ET_subj$test)]-ET_subj$test[1])
+
+t_unit <- "month"
+t_set <- "%b"
+t_adj <- 7
+
+
+if (t_diff < 30){
+  
+  t_unit <- "week"
+  t_set <- "%d"
+  t_adj <- 3
+}
+
+if (t_diff < 14){
+  
+  t_unit <- "day"
+  t_set <- "%a"
+  t_adj <- 1
+  
+}
+
+  
+plot <- ggplot(data = ET_subj, aes(x=test, y=eval(parse(text = var)))) + 
+  
+  scale_x_date(date_breaks = t_unit, date_labels = c(t_set)) + 
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = 2, ymax = Inf, alpha = 0.15, fill="green") +
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = 1, ymax = 2, alpha = 0.10, fill="green") +
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = -1, ymax = 1, alpha = 0.05, fill="green") + 
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = -2, ymax = -1, alpha = 0.05, fill="yellow") + 
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = -Inf, ymax = -2, alpha = 0.05, fill="red") + 
+  
+  geom_point(aes(color = factor(test)), size=3) + 
+  
+  geom_smooth(method='loess', se=FALSE) + 
+  
+  ggtitle(paste0(des[s])) + theme(plot.title = element_text(hjust = 0.5)) +
+  
+  labs(
+    x = paste0("Time (", t_unit, "s)"),
+    y = scales[s],
+    color = "Test date",
+    caption = ann) +
+  
+  expand_limits(y=c(-2,2)) +
+  
+  geom_errorbar(aes(ymin=eval(parse(text = var))-0.75, ymax=eval(parse(text = var))+0.75, color = factor(test)), width=.2)
+
+
+assign(paste("plot_", var, sep = ""), plot)
+assign(paste("plot_", var, sep = ""), plot)
+assign(paste("plot_", var, sep = ""), plot)
+
+suppressWarnings(print(plot))
+print(kable(rci_table, format="markdown", caption="* P<.05, ** P<.01, *** P<.001", align="l"))
+
+Legend <- " "
+Values <- "* P<.05, ** P<.01, *** P<.001"
+Leg <- data.frame(Legend, Values)
+
+print(kable(Leg, format="markdown", align="l", caption="* P<.05, ** P<.01, *** P<.001"))
+
+s=s+1
+
+}
+
+} else {
+  
+  print("No repeated measures found.")
+  
+}
+
+```
+
+Note. Higher scores reflect better performance.
+
+### Domain: Visuomotor Integration
+
+```{r visuomotor_integration, echo=FALSE, warning = FALSE, results='asis'}
+
+### Visuomotor Integration
+et_domains_all_sel <- select(et_domains_all, c(test, motor_response, visuom_random_d))
+
+colnames(et_domains_all_sel) <- c("Date", "Motor Response Inhibition", "Dynamic Integration")
+
+et_domains_all_long <- melt(et_domains_all_sel, id="Date")
+et_domains_all_long <- et_domains_all_long[et_domains_all_long$variable!="Date",]
+et_domains_all_long <- et_domains_all_long[et_domains_all_long$variable!="subj",]
+et_domains_all_long <- et_domains_all_long[et_domains_all_long$variable!="age",]
+
+colnames(et_domains_all_long) <- c("Date", "Domains", "Score")
+
+ystart <- 0.5
+yend <- 3.5
+
+ggplot(data = et_domains_all_long, aes(x=Score, y=Domains, group = Date, colour=Date)) + geom_rect(aes(xmin = -1, xmax = 1), ymin = ystart, ymax = yend, alpha = 0.05, fill="green", colour=NA) + geom_rect(aes(xmin = -2, xmax = -1), ymin = ystart, ymax = yend, alpha = 0.05, fill="yellow", colour=NA) + geom_rect(aes(xmin = -Inf, xmax = -2), ymin = ystart, ymax = yend, alpha = 0.05, fill="red", colour=NA) + geom_rect(aes(xmin = 1, xmax = 2), ymin = ystart, ymax = yend, alpha = 0.10, fill="green", colour=NA) + geom_rect(aes(xmin = 2, xmax = Inf), ymin = ystart, ymax = yend, alpha = 0.15, fill="green", colour=NA) + geom_errorbarh(aes(x = Score, xmin=Score-0.75, xmax=Score+0.75), width=.2, size =.3, position = position_dodgev(height = .5)) + geom_point(size=3, position = position_dodgev(height = .5)) + ggtitle("Domain Exploration - Visuomotor Integration") + theme(plot.title = element_text(hjust = 0.5)) + geom_vline(xintercept = c(0), color = "grey", size=0.5) + xlab ("Performance (z-score ± .75 SD)") + ylab("Neurocognitive Function")
+
+#### RCI ####
+
+# define variables
+vars <- c("motor_response", "visuom_random_d")
+dirs <- c("pos", "pos")
+des <- c("Motor Response Inhibition", "Integration Accuracy")
+trrs <- c(NA, NA)
+
+scales <-c("Time to change in direction in MRT (z-score)", "Precision (z-score)")
+
+summary <- data.frame(vars, dirs, des, trrs, scales)
+
+
+
+# select the measurements for RCI
+ET_subj <- et_domains_all
+
+if (nrow(ET_subj)>1){
+  
+s=1
+for (var in vars){
+
+rci_table <- data.frame(matrix(NA, (nrow=nrow(ET_subj)*(nrow(ET_subj)-1)/2), ncol=4))
+colnames(rci_table) <- c("Timepoint", "SD change", "RCI-index", "P-Value")
+
+z=1
+k=1:nrow(ET_subj)
+for (i in k){
+  for (j in k){
+    
+    if (j>i){
+      rci_results <- rci_calc(ET_subj, var, trrs[s], i, j)
+      
+      p1 <- ""
+      p1[sqrt(rci_results$sd_change*rci_results$sd_change)>1.5] <- "*"
+      
+      p2 <- ""
+      p2[rci_results$Pval<.05] <- "*"
+      p2[rci_results$Pval<.01] <- "**"
+      p2[rci_results$Pval<.001] <- "***"
+      
+      #write to table
+      rci_table[z,1] <- paste0("T", i, " vs ", "T", j)
+      rci_table[z,2] <- paste0(round(rci_results$sd_change,2),p1)
+      rci_table[z,3] <- paste0(round(rci_results$RCI,2),p2)
+      rci_table[z,4] <- round(rci_results$Pval,3)
+
+      z=z+1
+     }
+    }
+}
+
+assign(paste("rci_table_", var, sep = ""), rci_table)
+
+
+
+# plots
+
+test <- et_select_imp[grep(as.numeric(as.character(subj)), et_select_imp$subj),]$test
+ET_subj <- data.frame(test, ET_subj)
+ET_subj$test <- as.Date(ET_subj$test)
+
+#higher is poorer
+if (dirs[s]=="neg"){
+
+ann <- "Lower values reflect better performance"
+
+m <- mean(eval(parse(text = paste0("CTRL$", var))),na.rm=TRUE)
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+
+cut_1 <- -Inf
+cut_2 <- m+std
+cut_3 <- m + 2*std
+cut_4 <- Inf
+}
+
+# higher is better
+if (dirs[s]=="pos"){
+ann <- "Higher values reflect better performance"
+m <- mean(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+
+cut_1 <- Inf
+cut_2 <- m-std
+cut_3 <- m-2*std
+cut_4 <- -Inf
+
+}
+
+m <- mean(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+t_diff <- as.numeric(ET_subj$test[length(ET_subj$test)]-ET_subj$test[1])
+
+t_unit <- "month"
+t_set <- "%b"
+t_adj <- 7
+
+
+if (t_diff < 30){
+  
+  t_unit <- "week"
+  t_set <- "%d"
+  t_adj <- 3
+}
+
+if (t_diff < 14){
+  
+  t_unit <- "day"
+  t_set <- "%a"
+  t_adj <- 1
+  
+}
+
+  
+plot <- ggplot(data = ET_subj, aes(x=test, y=eval(parse(text = var)))) + 
+  
+  scale_x_date(date_breaks = t_unit, date_labels = c(t_set)) + 
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = 2, ymax = Inf, alpha = 0.15, fill="green") +
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = 1, ymax = 2, alpha = 0.10, fill="green") +
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = -1, ymax = 1, alpha = 0.05, fill="green") + 
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = -2, ymax = -1, alpha = 0.05, fill="yellow") + 
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = -Inf, ymax = -2, alpha = 0.05, fill="red") + 
+  
+  geom_point(aes(color = factor(test)), size=3) + 
+  
+  geom_smooth(method='loess', se=FALSE) + 
+  
+  ggtitle(paste0(des[s])) + theme(plot.title = element_text(hjust = 0.5)) +
+  
+  labs(
+    x = paste0("Time (", t_unit, "s)"),
+    y = scales[s],
+    color = "Test date",
+    caption = ann) +
+  
+  expand_limits(y=c(-2,2)) +
+  
+  geom_errorbar(aes(ymin=eval(parse(text = var))-0.75, ymax=eval(parse(text = var))+0.75, color = factor(test)), width=.2)
+
+assign(paste("plot_", var, sep = ""), plot)
+assign(paste("plot_", var, sep = ""), plot)
+assign(paste("plot_", var, sep = ""), plot)
+
+suppressWarnings(suppressWarnings(print(plot)))
+print(kable(rci_table, format="markdown", caption="* P<.05, ** P<.01, *** P<.001", align="l"))
+
+Legend <- " "
+Values <- "* P<.05, ** P<.01, *** P<.001"
+Leg <- data.frame(Legend, Values)
+
+print(kable(Leg, format="markdown", align="l", caption="* P<.05, ** P<.01, *** P<.001"))
+
+s=s+1
+
+}
+
+} else {
+  
+  print("No repeated measures found.")
+  
+}
+
+
+
+```
+
+Note. Higher scores reflect better performance.
+
+
+
+

@@ -1,0 +1,124 @@
+---
+title: "Preprocess"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+ipak <- function(pkg){
+    new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+    if (length(new.pkg)) 
+        install.packages(new.pkg, dependencies = TRUE)
+    sapply(pkg, require, character.only = TRUE)
+}
+
+# usage
+packages <- c("dplyr", "psych", "kableExtra", "reshape2", "ggplot2", "mice", "lubridate")
+ipak(packages)
+
+
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r impute, echo=FALSE, warning=FALSE}
+
+#replace infinite with NA
+et_select_comp[mapply(is.infinite, et_select_comp)] <- NA
+
+# replace NaN with NA
+et_select_comp[mapply(is.nan, et_select_comp)] <- NA
+
+# record missing values
+
+vars <- colnames(et_select_comp)
+
+missing_analysis <- as.data.frame(matrix(NA, nrow=length(vars), ncol=2))
+
+j=1
+
+for (i in vars){
+
+  missing_analysis[j,1] <- i
+  missing_analysis[j,2] <- sum(is.na(et_select_comp[,colnames(et_select_comp)==i]))/length(et_select_comp[,colnames(et_select_comp)==i])
+  
+  j = j+1
+}
+
+
+
+#replace infinite with NA
+et_select_comp[mapply(is.infinite, et_select_comp)] <- NA
+
+# replace NaN with NA
+et_select_comp[mapply(is.nan, et_select_comp)] <- NA
+
+# build predictor matrix
+predictorMatrix <- matrix(1L, nrow=ncol(et_select_comp), ncol=ncol(et_select_comp))
+colnames(predictorMatrix) <- colnames(et_select_comp)
+rownames(predictorMatrix) <- colnames(et_select_comp)
+
+# remove subject and test variables from predictor matrix, if existing
+if (exists("subj", et_select_comp) == TRUE){
+  subj_loc <- which(colnames(et_select_comp)=="subj")
+  predictorMatrix[1:nrow(predictorMatrix),subj_loc:subj_loc] <- 0
+  predictorMatrix[subj_loc:subj_loc, 1:nrow(predictorMatrix)] <- 0
+}
+
+if (exists("test", et_select_comp) == TRUE){
+  test_loc <- which(colnames(et_select_comp)=="test")
+  predictorMatrix[1:nrow(predictorMatrix),test_loc:test_loc] <- 0
+  predictorMatrix[test_loc:test_loc, 1:nrow(predictorMatrix)] <- 0
+}
+
+# remove diagonal
+for (i in 1:ncol(et_select_comp)){
+  print(i)
+  predictorMatrix[i,i] <- 0
+  
+}
+
+# check if there the minimun amount of data is present for imputation
+if (sum(is.na(et_select_comp)) > 0 & nrow(et_select_comp) >= 10){
+
+#tempData <- mice(et_select_comp,m=5,maxit=50,meth='cart',seed=500)
+#tempData <- mice(et_select_comp, m=5, maxit=5, meth='cart', seed=500, predictorMatrix = predictorMatrix)
+tempData <- mice(et_select_comp,m=5,maxit=50,meth='pmm',seed=500, predictorMatrix = predictorMatrix)
+
+
+summary(tempData)
+
+et_select_imp <- mice::complete(tempData, 1:5)
+
+et_select_imp <- aggregate(x = et_select_imp, by = list(et_select_imp$subj), FUN = "mean")
+et_select_imp$subj <-  et_select_imp$Group.1
+
+et_select_imp <- select(et_select_imp, -c("test"))
+
+test_all <- select(et_select_comp, c("subj", "test"))
+et_select_imp <- merge(test_all, et_select_imp, by="subj")
+
+} else {
+  
+    et_select_imp <- et_select_comp
+    
+    }
+
+
+#select subj data for the right test moment
+et_subject_all <- unique(et_select_imp[which(et_select_imp$group==1),])
+et_subject <- unique(et_subject_all[grep(as.Date(date, "%m/%d/%y"), as.Date(et_subject_all$test)),-c(1)])
+
+#filter out rows with remaining missing data
+et_select_imp <- et_select_imp[complete.cases(et_select_imp), ]
+
+
+```
+
+
+
