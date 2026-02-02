@@ -1,0 +1,1401 @@
+---
+title: "Clinical report"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+```{r preproc, include = FALSE, echo=FALSE}
+#+eval=FALSE
+
+
+```
+
+```{r setup_attention, include = FALSE}
+
+
+if (!require(installr)){
+  install.packages("installr")
+  require(installr)
+}
+
+if (!require(devtools)) {
+    install.packages("devtools")
+    require(devtools)
+}
+
+library(devtools)
+
+#if (find_rtools() != TRUE){
+#  
+#  install.Rtools()
+#}
+
+if (!require(curl)){
+  install.packages("curl")
+  require(curl)
+}
+
+
+if (!require(knitr)){
+  install.packages("knitr")
+  require(knitr)
+}
+
+if (!require(readr)) {
+    install.packages("readr")
+    require(readr)
+}
+
+if (!require(lubridate)) {
+    install.packages("lubridate")
+    require(lubridate)
+}
+
+if (!require(tidyr)) {
+    install.packages("tidyr")
+    require(tidyr)
+}
+
+if (!require(gtools)) {
+    install.packages("gtools")
+    require(gtools)
+}
+
+if (!require(colorspace)) {
+    install.packages("colorspace")
+    require(colorspace)
+}
+
+if (!require(ggplot2)) {
+    install.packages("ggplot2")
+    require(ggplot2)
+}
+
+
+
+#if (!require(Rtools)) {
+#    install.packages("Rtools")
+#    require(Rtools)
+#}
+
+
+#if (!require(easyGgplot2)) {
+#    install_github("kassambara/easyGgplot2")
+#    require(easyGgplot2)
+#}
+
+if (!require(plyr)) {
+    install_github("plyr")
+    require(plyr)
+}
+
+if (!require(kableExtra)) {
+    install.packages("kableExtra")
+    require(kable)
+}
+
+if (!require(reshape)) {
+    install.packages("reshape")
+    require(reshape)
+}
+
+if (!require(MESS)) {
+    install.packages("MESS")
+    require(MESS)
+}
+
+if (!require(scales)) {
+install.packages("scales")
+}
+
+if (!require(lazyeval)) {
+install.packages("lazyeval")
+}
+
+if (!require(imputeTS)){
+  install.packages("imputeTS")
+  require(imputeTS)
+}
+
+
+```
+
+
+```{r load packages, include = FALSE}
+
+library(plyr)
+library(retimes)
+library(scatterplot3d)
+library(readr)
+library(knitr)
+library(tidyr)
+library(gtools)
+library(lubridate)
+#library(Rtools)
+#library(easyGgplot2)
+library(devtools)
+library(kableExtra)
+library(reshape)
+library(MESS)
+library(imputeTS)
+library(ggplot2)
+
+```
+
+
+
+```{r load data, echo=FALSE}
+
+all_data <- read_csv(ANT.DATA.FILENAME, col_types = cols())
+
+eyet_data <- data.frame(subj)
+
+
+```
+![Dr. Marsh Konigs, m.konigs@amc.nl](amc.png)
+
+___
+
+##Eye Tracking
+
+```{r characterisics, echo=FALSE, warning=FALSE}
+
+Personal = c()
+Details = c()
+
+if (exists("naam", all_data) == TRUE){
+  name <- (unique(all_data$naam))
+  Personal <- c(Personal, "Name")
+  Details <- c(Details, name)
+}
+
+if (exists("geboortedatum", all_data) == TRUE){
+  dob <- (unique(all_data$geboortedatum))
+  Personal <- c(Personal, "Date of Birth")
+  Details <- c(Details, dob)
+}
+
+if (exists("geslacht", all_data) == TRUE){
+  gender <- (unique(all_data$geslacht))
+  Personal <- c(Personal, "Gender")
+  Details <- c(Details, gender)
+  eyet_data <- data.frame(eyet_data, gender)
+}
+
+if (exists("geboorteland_vader", all_data) == TRUE){
+  geboorteland_vader <- (unique(all_data$geboorteland_vader))
+  Personal <- c(Personal, "Geboorteland vader")
+  Details <- c(Details, geboorteland_vader)
+  eyet_data <- data.frame(eyet_data, geboorteland_vader)
+}
+
+if (exists("geboorteland_moeder", all_data) == TRUE){
+  geboorteland_moeder <- (unique(all_data$geboorteland_moeder))
+  Personal <- c(Personal, "Geboorteland moeder")
+  Details <- c(Details, geboorteland_moeder)
+  eyet_data <- data.frame(eyet_data, geboorteland_moeder)
+}
+
+if (exists("opleiding", all_data) == TRUE){
+  opleiding <- (unique(all_data$opleiding))
+  Personal <- c(Personal, "Opleiding")
+  Details <- c(Details, opleiding)
+  eyet_data <- data.frame(eyet_data, opleiding)
+}
+
+if (exists("handig", all_data) == TRUE){
+  handig <- (unique(all_data$handig))
+  Personal <- c(Personal, "Dominante hand")
+  Details <- c(Details, handig)
+  eyet_data <- data.frame(eyet_data, handig)
+}
+
+if (exists("positie", all_data) == TRUE){
+  positie <- handig <- (unique(all_data$positie))
+  Personal <- c(Personal, "Position")
+  Details <- c(Details, positie)
+  eyet_data <- data.frame(eyet_data, positie)
+}
+
+if (exists("kleurenblind", all_data) == TRUE){
+  kleurenblind <- (unique(all_data$kleurenblind))
+  Personal <- c(Personal, "Kleurenblind")
+  Details <- c(Details, kleurenblind)
+  eyet_data <- data.frame(eyet_data, kleurenblind)
+}
+
+if (exists("bril_lenzen", all_data) == TRUE){
+  bril <- (unique(all_data$bril_lenzen))
+  Personal <- c(Personal, "Glasses")
+  Details <- c(Details, bril)
+  eyet_data <- data.frame(eyet_data, bril)
+}
+
+if (exists("zicht", all_data) == TRUE){
+  zichtproblemen <- (unique(all_data$zicht))
+  Personal <- c(Personal, "Vision problems")
+  Details <- c(Details, zichtproblemen)
+  eyet_data <- data.frame(eyet_data, zichtproblemen)
+}
+
+if (exists("slaap", all_data) == TRUE){
+  slaapproblemen <- (unique(all_data$slaap))
+  Personal <- c(Personal, "Sleeping problems")
+  Details <- c(Details, slaapproblemen)
+  eyet_data <- data.frame(eyet_data, slaapproblemen)
+}
+
+if (exists("wat_voor_dieet", all_data) == TRUE){
+  dieet <- (unique(all_data$wat_voor_dieet))
+  Personal <- c(Personal, "Diet")
+  Details <- c(Details, dieet)
+  eyet_data <- data.frame(eyet_data, dieet)
+}
+
+if (exists("middelen", all_data) == TRUE){
+  middelen <- (unique(all_data$middelen))
+  Personal <- c(Personal, "Substance use")
+  Details <- c(Details, middelen)
+  eyet_data <- data.frame(eyet_data, middelen)
+}
+
+if (exists("gehoor", all_data) == TRUE){
+  gehoorproblemen <- (unique(all_data$gehoor))
+  Personal <- c(Personal, "Hearing Problems")
+  Details <- c(Details, gehoorproblemen)
+  eyet_data <- data.frame(eyet_data, gehoorproblemen)
+}
+
+if (exists("hersenschudding", all_data) == TRUE){
+  hersenschudding <- unique(all_data$hersenschudding)
+  Personal <- c(Personal, "History of concussion")
+  Details <- c(Details, hersenschudding)
+  eyet_data <- data.frame(eyet_data, hersenschudding)
+}
+
+if (exists("wanneer_hersenschudding", all_data) == TRUE){
+  t_hersenschudding <- (unique(all_data$wanneer_hersenschudding))
+  Personal <- c(Personal, "Previous concussion")
+  Details <- c(Details, t_hersenschudding)
+  eyet_data <- data.frame(eyet_data, t_hersenschudding)
+}
+
+if (exists("aandoeningen", all_data) == TRUE){
+  aandoening <- (unique(all_data$aandoeningen))
+  Personal <- c(Personal, "Condition")
+  Details <- c(Details, aandoening)
+  eyet_data <- data.frame(eyet_data, aandoening)
+}
+
+if (exists("aandoening_anders", all_data) == TRUE){
+  aandoening_anders <- (unique(all_data$aandoening_anders))
+  Personal <- c(Personal, "Condition, else")
+  Details <- c(Details, aandoening_anders)
+  eyet_data <- data.frame(eyet_data, aandoening_anders)
+}
+
+if (exists("welke_medicijnen", all_data) == TRUE){
+  medicatie <- (unique(all_data$welke_medicijnen))
+  Personal <- c(Personal, "Medication")
+  Details <- c(Details, medicatie)
+  eyet_data <- data.frame(eyet_data, medicatie)
+}
+
+if (length(Personal) > 0 & length(Details) > 0){
+  mydetails <- data.frame(Personal,Details)
+  kable(mydetails, format="markdown", caption="Personal details", align="l")
+}
+
+```
+
+```{r test details, echo = FALSE}
+
+Test <- c()
+Details <- c()
+
+
+if (exists("opensesame_version", all_data) == TRUE){
+  os_version <- unique(all_data$opensesame_version)
+  Test <- c(Test, "OS Version")
+  Details <- c(Details, os_version)
+}
+
+if (exists("experiment_file", all_data) == TRUE){
+  test_version <- unique(all_data$experiment_file)
+  Test <- c(Test, "Test Version")
+  Details <- c(Details, test_version)
+}
+
+if (exists("meting", all_data) == TRUE){
+  meting <- unique(all_data$meting)
+  Test <- c(Test, "Measurement Type")
+  Details <- c(Details, meting)
+  eyet_data <- data.frame(eyet_data, meting)
+}
+
+if (exists("datetime", all_data) == TRUE){
+  time <- unique(all_data$datetime)
+  Test <- c(Test, "Date and time")
+  Details <- c(Details, time[1])
+}
+
+if (exists("canvas_backend", all_data) == TRUE){
+  backend <- unique(all_data$canvas_backend)
+  Test <- c(Test, "Backend")
+  Details <- c(Details, backend)
+}
+
+date <- c(strsplit(time," "))
+date <- unlist(date)
+date <- date[1]
+test <- mdy(date)
+
+if ((exists("dob") == TRUE) & (exists("time") == TRUE)){
+  dob <- unique(all_data$geboortedatum)
+  dobi <- dmy(dob)
+  age <- as.numeric((test-dobi)/365)
+  }
+
+if (exists("Hz", G.df) == TRUE){
+  resolution <- round(mean(G.df$Hz, trim=.05),0)
+  Test <- c(Test, "Recording Resolution")
+  Details <- c(Details, resolution)
+}
+
+#if (exists("age") == TRUE){
+#  eyet_data <- data.frame(eyet_data, age)
+#  Test <- c(Test, "Age of Subject")
+#  Details <- c(Details, age)
+#}
+
+
+mytestdetails <- data.frame(Test, Details)
+
+kable(mytestdetails, format="markdown", caption="Test details", align="l")
+
+
+
+```
+
+#Symptom Checklist
+```{r symptom checklist, echo=FALSE}
+
+if (exists("hoofdpijn", all_data) == TRUE){
+  hoofdpijn <- unique(all_data$hoofdpijn)
+  druk_op_hoofd <- unique(all_data$druk_op_hoofd)
+  balans <- unique(all_data$balans)
+  nekpijn <- unique(all_data$nekpijn)
+  misselijkheid <- unique(all_data$misselijkheid)
+  braken <- unique(all_data$braken)
+  zichtproblemen <- unique(all_data$zichtproblemen)
+  gehoorproblemen <- unique(all_data$gehoorproblemen)
+  niet_goed_voelen <- unique(all_data$niet_goed_voelen)
+  wazig_voelen <- unique(all_data$wazig_voelen)
+  verward_voelen <- unique(all_data$verward_voelen)
+  gevoel_langzaam <- unique(all_data$gevoel_langzaam)
+  gevoel_mistig <- unique(all_data$gevoel_mistig)
+  slaperigheid <- unique(all_data$slaperigheid)
+  vermoeidheid <- unique(all_data$vermoeidheid)
+  emotioneel <- unique(all_data$emotioneel)
+  geirriteerd <- unique(all_data$geirriteerd)
+  concentratie <- unique(all_data$concentratie)
+  onthouden <- unique(all_data$onthouden)
+  droevigheid <- unique(all_data$nerveus_bang)
+  slaap <- unique(all_data$slaapproblemen)
+  meer_slapen <- unique(all_data$meer_slapen)
+  gevoeligheid_licht <- unique(all_data$gevoeligheid_licht)
+  gevoeligheid_geluid <- unique(all_data$gevoeligheid_geluid)
+
+symptom_score = hoofdpijn + druk_op_hoofd + balans + nekpijn + misselijkheid + braken + zichtproblemen + gehoorproblemen + niet_goed_voelen + wazig_voelen + verward_voelen + gevoel_langzaam + gevoel_mistig + slaperigheid + vermoeidheid + emotioneel + geirriteerd + concentratie + onthouden + droevigheid + slaap + meer_slapen + gevoeligheid_licht + gevoeligheid_geluid
+
+  symptoms <- matrix(c(hoofdpijn, druk_op_hoofd, balans, nekpijn, misselijkheid, braken, zichtproblemen, gehoorproblemen, niet_goed_voelen, wazig_voelen, verward_voelen, gevoel_langzaam, gevoel_mistig, slaperigheid, vermoeidheid, emotioneel, geirriteerd, concentratie, onthouden, droevigheid, slaap, meer_slapen, gevoeligheid_licht, gevoeligheid_geluid), ncol=24, nrow=1)
+
+  colnames(symptoms) <- c("hoofdpijn", "druk op hoofd", "balans", "nekpijn", "misselijk", "braken", "zicht", "gehoor", "niet goed voelen", "wazig", "verward", "langzaam", "mistig", "slaperig", "vermoeid", "emotioneel", "geirriteerd", "concentratie", "onthouden", "droevig", "slaap", "meer slaap", "lichtgevoeligheid", "geluidgevoeligheid")
+
+  symptoms <- symptoms[,order(symptoms)]
+  barplot(symptoms, horiz=T, las=1, xlab="Symptom Score (0-6)", cex.names=0.45, space=c(1,2))
+  print(paste ("Total Symptom Score: ", symptom_score, sep=""))
+}
+
+if (exists("hoofdpijn") == TRUE){
+  eyet_data <- data.frame(eyet_data, symptom_score, hoofdpijn, druk_op_hoofd, balans, nekpijn, misselijkheid, braken, zichtproblemen, gehoorproblemen, niet_goed_voelen, wazig_voelen, verward_voelen, gevoel_langzaam, gevoel_mistig, slaperigheid, vermoeidheid, emotioneel, geirriteerd, concentratie, onthouden, droevigheid, slaap, meer_slapen, gevoeligheid_licht, gevoeligheid_geluid)
+}
+
+```
+
+___
+
+```{r select data, echo=FALSE}
+
+myvars <- c("neutral.trials.n",
+            "congruent.trials.n",
+            "incongruent.trials.n",
+            "cor.x",
+            "cor.y",
+            "nr_sac_total",
+            "sac.neut.ratio",
+            "sac.con.ratio",
+            "sac.incon.ratio",
+            "sdfixationGX.1",
+            "sdfixationGY.1",
+            "meanSacVel.3",
+            "avgPeakVelSac.4",
+            "mean_peak_acc.5",
+            "eye_rt_mean.7",
+            "mean_processtime",
+            "neutral_meanptime.7",
+            "congruent_meanptime.7",
+            "incongruent_meanptime.7",
+            "mean_sd_GY.8",
+            "mean_sd_GX.8",
+            "eye_ratio_first.9",
+            "eye_ratio_last.10",
+            "coefficient.11")
+
+mydatas <- output.df[myvars]
+
+#mydatas <- rename(mydatas, c("subject_nr" = "subject", 
+#      "block" = "block",
+#      "count_new_srbox_2" = "trial",
+#      "correct_new_srbox_2" = "correct",
+#      "response_time_new_srbox_2" = "rt",
+#      "cue_condition" = "cue",
+#      "target_condition" = "target"))
+
+#colnames(mydatas) <- c("neutral", "congruent", "incongruent", "corr_x", "corr_y", "saccades", "target")
+
+#G.df$GX <- G.df$GX - (width_px/2)
+
+#G.df$GY <- G.df$GY - (height_px/2)
+
+```
+
+___
+
+
+### Overview of trials
+```{r trials, echo=FALSE}
+
+total.trials.n <- (mydatas$neutral.trials.n + mydatas$congruent.trials.n + mydatas$incongruent.trials.n)
+
+  Metric <- c("All trials (n)", "Neutral trials (n)", "Congruent trials (n)", "Incongruent trials (n)")
+  Value <- c(total.trials.n, mydatas$neutral.trials.n, mydatas$congruent.trials.n, mydatas$incongruent.trials.n)
+  
+  mytrials <- data.frame(Metric, Value)
+
+  kable(mytrials, format="markdown", caption="Number of trials")
+  
+  
+  
+
+```
+
+### Pupillometry
+```{r Puppilometry, echo=FALSE, warning=FALSE}
+
+# define the number of observations that will be needed to capture a certrain timeframe, given a certain resolution
+
+range <- 2200
+pre_time <- 100
+
+pre <- pre_time / (1000/resolution)
+obs <- round(range / (1000/resolution),0)
+time <- c(-pre:(obs))
+time <- (time * (1000/resolution))
+time_exact <- seq(-100, (range), 4)
+
+cue_period <- 0
+fix2_period <- 100
+target_period <- 500               
+
+
+#target trials selection, exclude spatial cue trials
+G.df_pupil <-G.df
+
+# prepare matrices to fill with trial data
+pupil_timeline <- data.frame(matrix(0L, nrow = length(unique(G.df_pupil$trial.number)), ncol = length(time_exact)))
+
+groups <- as.data.frame(matrix(0L, nrow=length(unique(G.df_pupil$trial.number)), ncol=2))
+
+colnames(groups) <- c("cue", "target")
+
+
+#loop through all trials 
+z=1
+for (i in unique(G.df_pupil$trial.number)){
+ 
+  # categorize the target type for later grouping
+groups[z,1] <- unique(G.df_pupil$cue.condition[ which(G.df_pupil$trial.number == i)])
+groups[z,2] <- unique(G.df_pupil$target.condition[ which(G.df_pupil$trial.number == i)])
+  
+  # take the sample for the pupil coordinate
+
+G.df_pupil_sample <- G.df_pupil[(G.df_pupil$trial.number == i | (G.df_pupil$trial.number == i+1 & G.df_pupil$block == "fixation.1")),]
+  
+G.df_pupil_sample_trial <- G.df_pupil[(G.df_pupil$trial.number == i),]
+
+  fix_period <- which(grepl("fixation.1", G.df_pupil_sample_trial$block))
+  
+  # only continue if we have all data in the trial
+  if (length(fix_period) > pre ){
+      
+  start <- (fix_period[length(fix_period)] - pre)
+  end <- start + (obs + pre)
+  
+  #time <- G.df_pupil_sample$Iview[start:end]
+  #time <- (time - time[1])/1000
+  G.df_pupil_sample <- G.df_pupil_sample$Pup[start:end]
+  
+
+  if(sum(is.na(G.df_pupil_sample))==0){
+
+# calculate relative distances to the first observation after appearance of the cue
+  G.df_pupil_sample <- G.df_pupil_sample - G.df_pupil_sample[pre] 
+
+  
+# resample to 250 Hz
+  fit <- smooth.spline(time[1:length(G.df_pupil_sample)],G.df_pupil_sample,cv = TRUE)
+  #loess(G.df_pupil_sample~time, merge(time,G.df_pupil_sample),span=0.1)
+  
+  #plot(time,G.df_pupil_sample)
+  #lines(fit,lwd=2,col="purple")
+
+  G.df_pupil_sample_smoothed <- predict(fit, time_exact)
+  G.df_pupil_sample_smoothed <- na_interpolation(G.df_pupil_sample_smoothed)
+  
+# limit the sample the number of observations
+  pupil_timeline[z,] <- t(G.df_pupil_sample_smoothed$y)
+  
+    z=z+1
+  }
+}
+}
+
+
+for (i in 1:nrow(pupil_timeline)){
+  
+  if (as.numeric(rowSums(pupil_timeline[i,]))==0) {
+      pupil_timeline[i,] <- NA
+      groups[i,] <- NA
+  }
+}
+
+pupil_timeline <- na.omit(pupil_timeline)
+groups <- na.omit(groups)
+
+
+
+
+for (i in 1:ncol(pupil_timeline)){
+  for (j in 1:nrow(pupil_timeline)){
+
+    out_max <- mean(pupil_timeline[,i], na.rm = T) + 3.29 * sd(pupil_timeline[,i], na.rm=TRUE)
+    out_min <- mean(pupil_timeline[,i], na.rm=TRUE) - 3.29 * sd(pupil_timeline[,i], na.rm=TRUE)
+      
+    if ((is.na(pupil_timeline[j,i]) == FALSE) & (pupil_timeline[j,i] > out_max | pupil_timeline[j,i] < out_min)){
+  
+      pupil_timeline[j,i] <- NA
+      groups[j,] <- NA
+      
+    }
+  }
+}
+
+time_exact <- time_exact[1:length(pupil_timeline)]
+
+pupil_cue <- data.frame(groups[1], pupil_timeline)
+colnames(pupil_cue) <- c("cue", time_exact)
+
+targ <- (target_period + pre_time) / (1000 / resolution)
+
+pupil_target <- data.frame(groups[2], (pupil_timeline-pupil_timeline[,targ]))
+colnames(pupil_target) <- c("target", time_exact)
+
+
+
+response_period <- target_period + G.df_pupil$response.time#[ which(G.df_pupil$trial.number == i)][1]
+
+# print the number of trials
+
+print(paste0("Number of trials: ", nrow(pupil_timeline)), sep="")
+
+
+# VISUALIZATION OF ALL TRIALS TOGETHER
+
+pupil <- pupil_cue
+pupil_long_all <- melt(pupil[,2:ncol(pupil)])
+colnames(pupil_long_all) <- c("time", "dilation")
+pupil_long_all <- aggregate(pupil_long_all, by=list(pupil_long_all$time), FUN=mean, na.rm=TRUE)
+colnames(pupil_long_all) <- c("time", "group", "dilation")
+pupil_long_all$groups <- "pupil"
+
+pupil_long_all$time <- as.numeric(as.character(pupil_long_all$time))
+
+
+
+
+ggplot(data=pupil_long_all, aes(x=time, y=dilation, group=groups)) +  
+  geom_line(aes(color=groups)) + 
+  ggtitle("Pupil timeline") +
+  xlab("time (ms)") +
+  ylab("Diameter change (mm)") +
+    geom_vline(xintercept = cue_period, 
+              color = "blue", size=0.2) +
+    geom_vline(xintercept = fix2_period, 
+              color = "black", size=0.2) +
+    geom_vline(xintercept = target_period, 
+              color = "blue", size=0.2) +
+      geom_vline(xintercept = mean(response_period), 
+              color = "red", size=0.2)
+
+
+
+
+# VISUALIZATION OF CUE CONDITIONS
+
+pupil_cue <- pupil_cue[,c(1,2:ncol(pupil_cue))]
+                   
+pupil_long_cue <- melt(pupil_cue, id=c("cue"))
+colnames(pupil_long_cue) <- c("cue", "time", "dilation")
+pupil_long_cue <- aggregate(pupil_long_cue, by=list(pupil_long_cue$cue, pupil_long_cue$time), FUN=mean, na.rm=TRUE)
+
+pupil_long_cue <- pupil_long_cue[,c(1,2,5)]
+colnames(pupil_long_cue) <- c("cue", "time", "dilation")
+
+pupil_long_cue$cue[which(pupil_long_cue$cue == 1)] <- "central cue"
+pupil_long_cue$cue[which(pupil_long_cue$cue == 2)] <- "no cue"
+pupil_long_cue$cue[which(pupil_long_cue$cue == 3)] <- "spatial cue"
+
+pupil_long_cue$time <- as.numeric(as.character(pupil_long_cue$time))
+
+G.df_no <- G.df %>%
+  filter(cue.condition %in% c("no cue"))
+
+response_period_no <- target_period + mean(G.df_no$response.time)
+
+G.df_central <- G.df %>%
+  filter(cue.condition %in% c("central"))
+
+response_period_central <- target_period + mean(G.df_central$response.time)
+
+G.df_spatial <- G.df %>%
+  filter(cue.condition %in% c("spatial"))
+
+response_period_spatial <- target_period + mean(G.df_spatial$response.time)
+
+
+ggplot(data=pupil_long_cue, aes(x=time, y=dilation, group=cue)) +  
+  geom_line(aes(color=cue)) + 
+  ggtitle("Pupil timeline") +
+  xlab("time (ms)") +
+  ylab("Diameter change (mm)") +
+    geom_vline(xintercept = cue_period, 
+              color = "blue", size=0.2) +
+    geom_vline(xintercept = fix2_period, 
+              color = "black", size=0.2) +
+    geom_vline(xintercept = target_period, 
+              color = "blue", size=0.2) +
+    geom_vline(xintercept = response_period_no,
+              color = "green", size=0.2) +
+    geom_vline(xintercept = response_period_central,
+              color = "red", size=0.2) +
+    geom_vline(xintercept = response_period_spatial,
+              color = "blue", size=0.2)
+
+
+# VISUALIZATION OF TARGET CONDITIONS
+
+pupil_target <- pupil_target[,c(1,2:ncol(pupil))]
+                   
+pupil_long_target <- melt(pupil_target, id=c("target"))
+colnames(pupil_long_target) <- c("target", "time", "dilation")
+pupil_long_target <- aggregate(pupil_long_target, by=list(pupil_long_target$target, pupil_long_target$time), FUN=mean, na.rm=TRUE)
+
+
+
+pupil_long_target <- pupil_long_target[,c(1,2,5)]
+
+colnames(pupil_long_target) <- c("target", "time", "dilation")
+
+pupil_long_target$target[which(pupil_long_target$target == 1)] <- "congruent"
+pupil_long_target$target[which(pupil_long_target$target == 2)] <- "incongruent"
+pupil_long_target$target[which(pupil_long_target$target == 3)] <- "neutral"
+
+pupil_long_target$time <- as.numeric(as.character(pupil_long_target$time))
+
+G.df_neutral <- G.df %>%
+  filter(target.condition %in% c("neutral"))
+
+response_period_neutral <- target_period + mean(G.df_neutral$response.time)
+
+G.df_congruent <- G.df %>%
+  filter(target.condition %in% c("congruent"))
+
+response_period_congruent <- target_period + mean(G.df_congruent$response.time)
+
+G.df_incongruent <- G.df %>%
+  filter(target.condition %in% c("incongruent"))
+
+response_period_incongruent <- target_period + mean(G.df_incongruent$response.time)
+
+ggplot(data=pupil_long_target, aes(x=time, y=dilation, group=target)) +  
+  geom_line(aes(color=target)) + 
+  ggtitle("Pupil timeline") +
+  xlab("time (ms)") +
+  ylab("Diameter change (mm)") +
+    geom_vline(xintercept = cue_period, 
+              color = "blue", size=0.2) +
+    geom_vline(xintercept = fix2_period, 
+              color = "black", size=0.2) +
+    geom_vline(xintercept = target_period, 
+              color = "blue", size=0.2) +
+    geom_vline(xintercept = response_period_neutral,
+              color = "blue", size=0.2) +
+    geom_vline(xintercept = response_period_congruent,
+              color = "red", size=0.2) +
+    geom_vline(xintercept = response_period_incongruent,
+              color = "green", size=0.2)
+
+
+
+```
+
+
+Note. Vertical lines pertain to different trial phases. The first blue line reflects the start of the cueing period, the black line reflects the start of the second fixation period and the second blue line reflects the start of the target period.The vertical red line reflects the mean response time of all trails.
+
+#### Attention networks 
+```{r Networks, echo=FALSE, warning=FALSE} 
+
+#Visualize attention networks
+
+pupil_long_nocue <- pupil_long_cue[which(pupil_long_cue$cue == "no cue"),]
+pupil_long_centralcue <- pupil_long_cue[which(pupil_long_cue$cue== "central cue"),]
+pupil_long_spatialcue <- pupil_long_cue[which(pupil_long_cue$cue == "spatial cue"),]
+
+pupil_long_neutral <- pupil_long_target[which(pupil_long_target$target == "neutral"),]
+pupil_long_congruent <- pupil_long_target[which(pupil_long_target$target == "congruent"),]
+pupil_long_incongruent <- pupil_long_target[which(pupil_long_target$target == "incongruent"),]
+
+pupil_alerting <- pupil_long_nocue
+pupil_alerting$dilation <- pupil_long_centralcue$dilation - pupil_long_nocue$dilation
+pupil_alerting$dilation <- pupil_alerting$dilation - pupil_alerting$dilation[1]
+pupil_alerting$cue <- "alerting"
+
+pupil_orienting <- pupil_long_nocue
+pupil_orienting$dilation <- pupil_long_spatialcue$dilation - pupil_long_centralcue$dilation
+pupil_orienting$dilation <- pupil_orienting$dilation - pupil_orienting$dilation[1]
+pupil_orienting$cue <- "orienting"
+
+pupil_executive <- pupil_long_nocue
+pupil_executive$dilation <- pupil_long_incongruent$dilation - pupil_long_congruent$dilation
+pupil_executive$dilation <- pupil_executive$dilation - pupil_executive$dilation[1]
+pupil_executive$cue <- "executive"
+
+pupil_networks <- rbind(pupil_alerting, pupil_orienting, pupil_executive)
+colnames(pupil_networks) <- c("network", "time", "dilation")
+
+ggplot(data=pupil_networks, aes(x=time, y=dilation, group=network)) +  
+  geom_line(aes(color=network)) + 
+  ggtitle("Pupil timeline") +
+  xlab("time (ms)") +
+  ylab("Diameter change (mm)") +
+    geom_vline(xintercept = cue_period, 
+              color = "blue", size=0.2) +
+    geom_vline(xintercept = fix2_period, 
+              color = "black", size=0.2) +
+    geom_vline(xintercept = target_period, 
+              color = "blue", size=0.2)
+
+
+# compute area under the curves
+
+pupil_long_nocue <- pupil_long_nocue[which(pupil_long_nocue$time>=0),]
+auc_nocue <- auc(pupil_long_nocue$time,pupil_long_nocue$dilation)
+
+pupil_long_centralcue <- pupil_long_centralcue[which(pupil_long_centralcue$time>=0),]
+auc_centralcue <- auc(pupil_long_centralcue$time,pupil_long_centralcue$dilation)
+
+pupil_long_spatialcue <- pupil_long_spatialcue[which(pupil_long_spatialcue$time>=0),]
+auc_spatialcue <- auc(pupil_long_spatialcue$time,pupil_long_spatialcue$dilation)
+
+pupil_long_congruent <- pupil_long_congruent[which(pupil_long_congruent$time>=500),]
+auc_congruent <- auc(pupil_long_congruent$time,pupil_long_congruent$dilation)
+
+pupil_long_incongruent <- pupil_long_incongruent[which(pupil_long_incongruent$time>=500),]
+auc_incongruent <- auc(pupil_long_incongruent$time,pupil_long_incongruent$dilation)
+
+auc_alerting <- auc_centralcue - auc_nocue
+auc_orienting <- auc_spatialcue - auc_centralcue
+auc_executive <- auc_incongruent - auc_congruent
+
+
+  Metric <- c("Alerting attention", "Orienting attention", "Executive attention")
+  AUC <- c(round(auc_alerting,1), round(auc_orienting,1), round(auc_executive,1))
+  Norm_m <- c("X", "X", "X")
+  Norm_z <- c("X", "X", "X")
+
+  if(file.exists("../../../Data/Norms/normative_data.txt")){
+  
+  norms <- read.table("../../../Data/Norms/normative_data.txt")
+  
+  z_auc_alerting <- (auc_alerting - mean(norms$auc_alerting)) / sd(norms$auc_alerting)
+  z_auc_orienting <- (auc_orienting - mean(norms$auc_orienting)) / sd(norms$auc_orienting)
+  z_auc_executive <- (auc_executive - mean(norms$auc_executive)) / sd(norms$auc_executive)
+  
+  Norm_m <- c(round(mean(norms$auc_alerting),0), round(mean(norms$auc_orienting),0), round(mean(norms$auc_executive),0))
+  Norm_z <- c(round(z_auc_alerting,2), round(z_auc_orienting,2), round(z_auc_executive,2))
+}
+  
+  myauc <- data.frame(Metric, AUC, Norm_m, Norm_z)
+  
+  
+print(paste0("Missing data that was imputed: ", output.df$missing_data, "%"), sep="")
+
+  kable(myauc, format="markdown", caption="Area under the curve")
+
+  
+  
+  
+```
+
+  
+
+### Saccadometry
+```{r Timelines, echo=FALSE, warning=FALSE} 
+
+# define the number of observations that will be needed to capture a certrain timeframe, given a certain resolution
+range <- 600
+
+obs <- round(range / (1000/resolution),0)
+time <- c(0:(obs+1))
+time <- (time * (1000/resolution))
+time_exact <- seq(0, (range), 4)
+
+
+#target trials selection, exclude spatial cue trials
+G.df_gaze <- G.df
+
+# prepare matrices to fill with trial data
+target_gaze_timeline_x <- data.frame(matrix(0L, nrow = length(unique(G.df_gaze$trial.number)), ncol = length(time_exact)))
+target_gaze_timeline_y <- data.frame(matrix(0L, nrow = length(unique(G.df_gaze$trial.number)), ncol = length(time_exact)))
+
+groups <- as.data.frame(matrix(0L, nrow=length(unique(G.df_gaze$trial.number)), ncol=1))
+
+                        
+colnames(groups) <- c("group")
+
+
+#loop through all trials 
+z=1
+for (i in unique(G.df_gaze$trial.number)){
+  
+  # categorize the target type for later grouping
+  group <- unique(G.df_gaze$target.condition[ which(G.df_gaze$trial.number == i)])
+  
+  # register the target type in a variable
+  groups[z,] <- group
+  
+  G.df_gaze_sample <- G.df_gaze[(G.df_gaze$trial.number == i | (G.df_gaze$trial.number == i+1 & G.df_gaze$block == "fixation.1")),]
+  
+G.df_gaze_sample_trial <- G.df_gaze[(G.df_gaze$trial.number == i),]
+
+  target_period <- which(grepl("target", G.df_gaze_sample_trial$block))
+  
+    start <- target_period[1]
+    end <- start + (obs+1)
+    
+    if (is.na(start) == FALSE){
+  
+# take the sample for the x coordinate
+  G.df_target_sample_x <- G.df_gaze_sample$GX[start:end]
+  G.df_target_sample_y <- G.df_gaze_sample$GY[start:end]
+  
+  if (sum(G.df_target_sample_x) != 0 & sum(is.na(G.df_target_sample_x))==0 & sum(is.na(G.df_target_sample_y))==0 & unique(G.df_gaze_sample_trial$cue.condition)!="spatial"){
+  
+# calculate relative distances to the first observation (should be fixation cross)
+# G.df_target_sample_x <- G.df_target_sample_x - G.df_target_sample_x[1] 
+# G.df_target_sample_y <- G.df_target_sample_y - G.df_target_sample_y[1] 
+    
+
+  # resample to 250 Hz
+  fit_x <- loess(G.df_target_sample_x~time, merge(time,G.df_target_sample_x),span=0.1)
+  #plot(time,G.df_target_sample_x)
+  #lines(fit_x,lwd=2,col="purple")
+  
+  
+  # resample to 250 Hz
+  fit_y <- loess(G.df_target_sample_y~time, merge(time,G.df_target_sample_y),span=0.1)
+  #plot(time,G.df_target_sample_y)
+  #lines(fit_y,lwd=2,col="purple")
+  
+  G.df_gaze_sample_smoothed_x <- predict(fit_x, time_exact)
+  G.df_gaze_sample_smoothed_y <- predict(fit_y, time_exact)
+
+  #plot(time,G.df_target_sample_y)
+  #lines(fit_y,lwd=2,col="green")
+  #lines(time,G.df_gaze_sample_smoothed_y,lwd=2,col="red")
+  
+# calculate relative distances to the first observation (should be fixation cross)
+G.df_gaze_sample_smoothed_x <-  G.df_gaze_sample_smoothed_x -  G.df_gaze_sample_smoothed_x[1] 
+G.df_gaze_sample_smoothed_y <-  G.df_gaze_sample_smoothed_y -  G.df_gaze_sample_smoothed_y[1] 
+ 
+# neutralize the sign for eye movements in de x/y direction so that left/right and up/down movements can be analysed in the same plane
+  G.df_gaze_sample_smoothed_x <- sqrt(G.df_gaze_sample_smoothed_x * G.df_gaze_sample_smoothed_x)
+  G.df_gaze_sample_smoothed_y <- sqrt(G.df_gaze_sample_smoothed_y * G.df_gaze_sample_smoothed_y)
+  
+  G.df_gaze_sample_smoothed_x <- na_interpolation(G.df_gaze_sample_smoothed_x)
+  G.df_gaze_sample_smoothed_y <- na_interpolation(G.df_gaze_sample_smoothed_y)
+  
+  
+#  if (unique(G.df_target$target.position[ which(G.df_target$trial.number == i)]) == "up"){
+#  G.df_gaze_sample_smoothed_y <- G.df_gaze_sample_smoothed_y * -1
+#  }
+ 
+ #print(unique(G.df_target$target.position[ which(G.df_target$trial.number == i)]))
+ 
+# add the interpolated observation to the matrix
+  G.df_gaze_sample_smoothed_x <- G.df_gaze_sample_smoothed_x[1:length(target_gaze_timeline_x)]
+  target_gaze_timeline_x[z,] <- t(G.df_gaze_sample_smoothed_x)
+  
+  G.df_gaze_sample_smoothed_y <- G.df_gaze_sample_smoothed_y[1:length(target_gaze_timeline_y)]
+  target_gaze_timeline_y[z,] <- t(G.df_gaze_sample_smoothed_y)
+  
+
+}
+  
+  z=z+1
+  }
+  }
+
+# replace unreasonable values
+
+for (i in 1:nrow(target_gaze_timeline_x)){
+  
+# replace rows with only 0's with NA's  
+  
+  if (is.na(as.numeric(rowSums(target_gaze_timeline_x[i,]))) == FALSE & as.numeric(rowSums(target_gaze_timeline_x[i,]))==0) {
+      target_gaze_timeline_x[i,] <- NA
+      target_gaze_timeline_y[i,] <- NA
+      groups[i,] <- NA
+  }
+  
+#  if (is.na(as.numeric(rowSums(target_gaze_timeline_y[i,]))) == FALSE){
+#    target_gaze_timeline_x[i,1:ncol(target_gaze_timeline_x)] <- NA
+#    target_gaze_timeline_y[i,1:ncol(target_gaze_timeline_y)] <- NA
+#    groups[i,] <- NA
+#  }
+  
+}
+
+target_gaze_timeline_x <- target_gaze_timeline_x[,1:ncol(target_gaze_timeline_x)]
+target_gaze_timeline_y <- target_gaze_timeline_y[,1:ncol(target_gaze_timeline_x)]
+
+
+# discard trials with missing values
+target_gaze_timeline_x <- na.omit(target_gaze_timeline_x)
+target_gaze_timeline_y <- na.omit(target_gaze_timeline_y)
+groups <- na.omit(groups)
+
+# calculate boundaries for outliers
+for (i in 1:ncol(target_gaze_timeline_x)){
+  
+      out_max_x <- mean(target_gaze_timeline_x[,i], na.rm = T) + 3.29 * sd(target_gaze_timeline_x[,i], na.rm=TRUE)
+out_min_x <- mean(target_gaze_timeline_x[,i], na.rm=TRUE) - 3.29 * sd(target_gaze_timeline_x[,i], na.rm=TRUE)
+out_max_y <-mean(target_gaze_timeline_y[,i], na.rm=TRUE) + 3.29 * sd(target_gaze_timeline_x[,i], na.rm=TRUE)
+out_min_y <- mean(target_gaze_timeline_y[,i], na.rm=TRUE) - 3.29 * sd(target_gaze_timeline_x[,i], na.rm=TRUE)
+  
+  for (j in 1:nrow(target_gaze_timeline_x)){
+
+# replace outliers for missing values
+    if ((is.na(target_gaze_timeline_x[j,i]) == FALSE) & (is.na(target_gaze_timeline_y[j,i]) == FALSE) & (target_gaze_timeline_x[j,i] > out_max_x | target_gaze_timeline_x[j,i] < out_min_x | target_gaze_timeline_y[j,i] > out_max_y | target_gaze_timeline_y[j,i] > out_max_y)){
+  
+      target_gaze_timeline_x[j,i] <- NA
+      target_gaze_timeline_y[j,i] <- NA
+      groups[j,] <- NA
+      
+    }
+  }
+}
+
+# prepare the data for visualisation
+time_exact <- time_exact[1:length(target_gaze_timeline_x)]
+colnames(target_gaze_timeline_x) <- time_exact
+colnames(target_gaze_timeline_y) <- time_exact
+
+x <- data.frame(groups, target_gaze_timeline_x)
+y <- data.frame(groups, target_gaze_timeline_y)
+
+colnames(x) <- c("group", time_exact)
+colnames(y) <- c("group", time_exact)
+
+x_long_all <- melt(x[,2:ncol(x)])
+colnames(x_long_all) <- c("time", "distance")
+x_long_all <- aggregate(x_long_all, by=list(x_long_all$time), FUN=mean, na.rm=TRUE)
+colnames(x_long_all) <- c("time", "group", "distance")
+x_long_all$groups <- "x"
+
+y_long_all <- melt(y[,2:ncol(y)])
+colnames(y_long_all) <- c("time", "distance")
+y_long_all <- aggregate(y_long_all, by=list(y_long_all$time), FUN=mean, na.rm=TRUE)
+colnames(y_long_all) <- c("time", "group", "distance")
+y_long_all$groups <- "y"
+
+xy_long_all <- rbind(x_long_all, y_long_all)
+
+xy_long_all$time <- (as.numeric(as.character(xy_long_all$time)))
+
+
+# print the number of trials
+print(paste0("Number of trials: ", nrow(target_gaze_timeline_x)), sep="")
+
+print(paste0("Missing data that was imputed: ", output.df$missing_data, "%"), sep="")
+
+# visualize the overall change in x and y coordinates 
+ggplot(data=xy_long_all, aes(x=time, y=distance, group=groups)) +  
+  geom_line(aes(color=groups)) + 
+  ggtitle("saccade timeline") +
+  xlab("time (ms)") +
+  ylab("distance (pix)") +
+    geom_hline(yintercept = 50, 
+               color = "black", size=0.2) + 
+  geom_hline(yintercept = 60, color = "black", linetype="dashed",
+             color = "black", size=0.1) +
+  geom_hline(yintercept = 40, color = "black", linetype="dashed",
+             color = "black", size=0.1)
+
+
+#visualize the change in x-coordinates seperately for each trial type
+colnames(x) <- c("groups", time_exact)
+x_long <- melt(x, id=c("groups"))
+colnames(x_long) <- c("groups", "time", "distance")
+x_long <- aggregate(x_long, by=list(x_long$groups, x_long$time), FUN=mean, na.rm=TRUE)
+x_long <- x_long[,c(2,3,5)]
+
+colnames(x_long) <- c("time", "groups", "distance")
+colnames(x_long) <- c("time", "groups", "distance")
+
+x_long$groups[which(x_long$groups == 1)] <- "congruent"
+x_long$groups[x_long$groups == 2] <- "incongruent"
+x_long$groups[x_long$groups == 3] <- "neutral"
+
+x_long$time <- as.numeric(as.character(x_long$time))
+
+ggplot(data=x_long, aes(x=time, y=distance, group=groups)) +  
+  geom_line(aes(color=groups)) + 
+  ggtitle("x-axis") +
+  xlab("time (ms)") +
+  ylab("distance (pix)") +
+  geom_vline(xintercept = output.df$neutral_eye_rt_target.7, 
+              color = "blue", size=0.2) +
+  geom_vline(xintercept = output.df$congruent_eye_rt_target.7, 
+              color = "red", size=0.2) +
+  geom_vline(xintercept = output.df$incongruent_eye_rt_target.7, 
+              color = "green", size=0.2)
+
+
+colnames(y) <- c("groups", time_exact)
+
+y_long <- melt(y, id=c("groups"))
+colnames(y_long) <- c("groups", "time", "distance")
+
+
+# Visualize the seperate trial saccades
+
+target_gaze_timeline_y = cbind(target_gaze_timeline_y, row_number = seq(1, nrow(target_gaze_timeline_y)))
+
+target_y_long = melt(target_gaze_timeline_y, id = "row_number")
+
+ggplot(target_y_long, aes(x = variable, y = value, group = row_number)) + 
+geom_line(stat = "identity")
+
+
+# Visualize the change in y-coordinates for each trial type
+
+y_long <- aggregate(y_long, by=list(y_long$groups, y_long$time), FUN=mean, na.rm=TRUE)
+y_long <- y_long[,c(2,3,5)]
+colnames(y_long) <- c("time", "groups", "distance")
+
+y_long$groups[which(y_long$groups == 1)] <- "congruent"
+y_long$groups[y_long$groups == 2] <- "incongruent"
+y_long$groups[y_long$groups == 3] <- "neutral"
+
+y_long$time <- as.numeric(as.character(y_long$time))
+
+ggplot(data=y_long, aes(x=time, y=distance, group=groups)) +  
+  geom_line(aes(color=groups)) + 
+  geom_hline(yintercept = 50, 
+               color = "black", size=0.2) + 
+  geom_hline(yintercept = 60, color = "black", linetype="dashed",
+             color = "black", size=0.1) +
+  geom_hline(yintercept = 40, color = "black", linetype="dashed",
+             color = "black", size=0.1) +
+  ggtitle("y-axis") +
+  xlab("time (ms)") +
+  ylab("distance (pix)") 
+  #geom_vline(xintercept = output.df$incongruent_mean.Rt.but, 
+  #             color = "darkgreen", size=0.1)
+
+
+# create plots with the proportion of trials that reached the target area as a function of time
+target_gaze_timeline_x_cum <- target_gaze_timeline_x
+target_gaze_timeline_x_cum[target_gaze_timeline_x_cum < 50] <- 1
+target_gaze_timeline_x_cum[target_gaze_timeline_x_cum > 50] <- 0
+
+    # once a trial is in the target area, keep it there
+for (i in 1:nrow(target_gaze_timeline_x_cum)){
+  for (j in 2:ncol(target_gaze_timeline_x_cum)){
+    
+      if (is.na(target_gaze_timeline_x_cum[i,j-1:j]) == F & target_gaze_timeline_x_cum[i,j-1] ==1){
+        target_gaze_timeline_x_cum[i,j] <- 1
+    }
+  }
+}
+
+    # indicate when the y-coordinate is in the target area
+target_gaze_timeline_y_cum <- target_gaze_timeline_y
+target_gaze_timeline_y_cum[target_gaze_timeline_y_cum < 33] <- 0
+target_gaze_timeline_y_cum[target_gaze_timeline_y_cum > 33] <- 1
+
+    # once a trial is in the target area, keep it there
+for (i in 1:nrow(target_gaze_timeline_y_cum)){
+  for (j in 2:ncol(target_gaze_timeline_y_cum)){
+    
+      if (is.na(target_gaze_timeline_y_cum[i,j-1:j]) == F & target_gaze_timeline_y_cum[i,j-1] ==1){
+        target_gaze_timeline_y_cum[i,j] <- 1
+    }
+  }
+}
+
+target_gaze_timeline_y_cum <- target_gaze_timeline_y_cum[1:length(target_gaze_timeline_y_cum)-1]
+
+box <- target_gaze_timeline_x_cum * target_gaze_timeline_y_cum
+box <- data.frame(groups, box)
+colnames(box) <- c("groups", time_exact)
+
+box_long <- melt(box, id=c("groups"))
+colnames(box_long) <- c("groups", "time", "distance")
+
+box_long <- aggregate(box_long, by=list(box_long$groups, box_long$time), FUN=mean, na.rm=TRUE)
+
+box_long <- box_long[,c(2,3,5)]
+
+colnames(box_long) <- c("time", "groups", "distance")
+
+box_long$groups[which(box_long$groups == 1)] <- "congruent"
+box_long$groups[box_long$groups == 2] <- "incongruent"
+box_long$groups[box_long$groups == 3] <- "neutral"
+
+box_long$time <- as.numeric(as.character(box_long$time))
+
+ggplot(data=box_long, aes(x=time, y=distance, group=groups)) +  
+  geom_line(aes(color=groups)) + 
+  ggtitle("y-axis") +
+  xlab("time (ms)") +
+  ylab("Target area reached (proportion of trials)") 
+  
+
+
+```
+
+### Left-right eye correlations
+```{r Left-Right correlations, echo=FALSE}
+
+  Metric <- c("X-axis", "Y-axis")
+  Value <- c(round(mydatas$cor.x,3), round(mydatas$cor.y,3))
+  Norm_m <- c("X", "X")
+  Norm_z <- c("X", "X")
+  
+  
+  if(file.exists("../../../Data/Norms/normative_data.txt")){
+  
+  norms <- read.table("../../../Data/Norms/normative_data.txt")
+  
+  cut_86_cor.x <- sort(norms$cor.x, decreasing=T)[round(0.86*length(norms$cor.x),0)]
+  cut_95_cor.x <- sort(norms$cor.x, decreasing=T)[round(0.95*length(norms$cor.x),0)]
+  
+  cut_86_cor.y <- sort(norms$cor.y, decreasing=T)[round(0.86*length(norms$cor.y),0)]
+  cut_95_cor.y <- sort(norms$cor.y, decreasing=T)[round(0.95*length(norms$cor.y),0)]
+  
+  
+  if(mydatas$cor.x > cut_86_cor.x){
+    cut_corr.x <- "Normal range"
+  }
+  
+  if(mydatas$cor.x < cut_86_cor.x){
+    cut_corr.x <- "Below Average"
+  }
+    
+  if(mydatas$cor.x < cut_95_cor.x){
+    cut_corr.x <- "Low"
+  }
+  
+  if(mydatas$cor.y > cut_86_cor.y){
+    cut_corr.y <- "Normal range"
+  }
+  
+  if(mydatas$cor.y < cut_86_cor.y){
+    cut_corr.y <- "Below Average"
+  }
+    
+  if(mydatas$cor.y < cut_95_cor.y){
+    cut_corr.y <- "Low"
+  }
+  
+  Norm_m <- c(round(mean(norms$cor.x),3), round(mean(norms$cor.y),3))
+  Norm_z <- c(cut_corr.x, cut_corr.y)
+  
+  
+    }
+  
+  mycorr <- data.frame(Metric, Value, Norm_m, Norm_z)
+
+  kable(mycorr, format="markdown", caption="Correlations between left & right eye")
+  
+
+```
+
+### Fixation stability
+```{r fixation stability, echo=FALSE}
+
+
+Metric <- c("Fixation on x-axis", "Fixation on y-axis", "Target on x-axis", "Target on y-axis")
+Value <- c(round(mydatas$sdfixationGX.1,2), round(mydatas$sdfixationGY.1,2), round(mydatas$mean_sd_GX.8,2), round(mydatas$mean_sd_GY.8,2))
+Norm_m <- c("X","X","X","X")
+Norm_z <- c("X","X","X","X")
+
+if(file.exists("../../../Data/Norms/normative_data.txt")){
+  
+  norms <- read.table("../../../Data/Norms/normative_data.txt")
+ 
+  z_sdfixationGX.1 <- (mydatas$sdfixationGX.1 - mean(norms$sdfixationGX.1)) / sd(norms$sdfixationGX.1)
+  z_sdfixationGY.1 <- (mydatas$sdfixationGY.1 - mean(norms$sdfixationGY.1)) / sd(norms$sdfixationGY.1)
+  z_mean_sd_GX.8 <- (mydatas$mean_sd_GX.8 - mean(norms$mean_sd_GX.8)) / sd(norms$mean_sd_GX.8)
+  z_mean_sd_GY.8 <- (mydatas$mean_sd_GY.8 - mean(norms$mean_sd_GY.8)) / sd(norms$mean_sd_GY.8)
+  
+  Norm_m <- c(round(mean(norms$sdfixationGX.1),0), round(mean(norms$sdfixationGY.1),0), round(mean(norms$mean_sd_GX.8),0), round(mean(norms$mean_sd_GY.8),0))
+  Norm_z <- c(round(z_sdfixationGX.1,2), round(z_sdfixationGY.1,2), round(z_mean_sd_GX.8,2), round(z_mean_sd_GY.8,2))
+ 
+}
+
+
+mysaccades <- data.frame(Metric, Value, Norm_m, Norm_z)
+
+kable(mysaccades, format="markdown", caption="Correlations between left & right eye")
+
+
+
+```
+
+
+### Saccadometry
+```{r saccadometry, echo=FALSE}
+
+Metric <- c("Velocity (mean)", "Peak velocity (mean)", "Peak acceleration (mean)", "On target in first saccade (%)", "On target in last saccade (%)", "Coefficient between saccade amplitude & velocity")
+Value <- c(round(mydatas$meanSacVel.3,0), round(mydatas$avgPeakVelSac.4,0), round(mydatas$mean_peak_acc.5,0), (round(mydatas$eye_ratio_first.9,4)*100), (round(mydatas$eye_ratio_last.10,4)*100), round(mydatas$coefficient.11,2))
+Norm_m <- c("X", "X", "X", "X", "X", "X")
+Norm_z <- c("X", "X", "X", "X", "X", "X")
+
+
+if(file.exists("../../../Data/Norms/normative_data.txt")){
+  
+  norms <- read.table("../../../Data/Norms/normative_data.txt")
+ 
+  z_meanSacVel.3 <- (mydatas$meanSacVel.3 - mean(norms$meanSacVel.3)) / sd(norms$meanSacVel.3)
+  z_avgPeakVelSac.4 <- (mydatas$avgPeakVelSac.4 - mean(norms$avgPeakVelSac.4)) / sd(norms$avgPeakVelSac.4)
+  z_mean_peak_acc.5 <- (mydatas$mean_peak_acc.5 - mean(norms$mean_peak_acc.5)) / sd(norms$mean_peak_acc.5)
+  z_eye_ratio_first.9 <- (mydatas$eye_ratio_first.9 - mean(norms$eye_ratio_first.9)) / sd(norms$eye_ratio_first.9)
+  z_eye_ratio_last.10 <- (mydatas$eye_ratio_last.10 - mean(norms$eye_ratio_last.10)) / sd(norms$eye_ratio_last.10)
+  z_coefficient.11 <- (mydatas$coefficient.11 - mean(norms$coefficient.11)) / sd(norms$coefficient.11)
+  
+  Norm_m <- c(round(mean(norms$meanSacVel.3),0), round(mean(norms$avgPeakVelSac.4),0), round(mean(norms$mean_peak_acc.5),0), round(mean(norms$eye_ratio_first.9),4)*100, round(mean(norms$eye_ratio_last.10),4)*100, round(mean(norms$coefficient.11),0) )
+  Norm_z <- c(round(z_meanSacVel.3,2), round(z_avgPeakVelSac.4,2), round(z_mean_peak_acc.5,2), round(z_eye_ratio_first.9,2), round(z_eye_ratio_last.10,2), round(z_coefficient.11,2))
+ 
+}
+
+
+mysaccadometry <- data.frame(Metric, Value, Norm_m, Norm_z)
+
+kable(mysaccadometry, format="markdown", caption="Correlations between left & right eye")
+
+
+
+```
+
+### Processing time
+```{r saccade ratios, echo=FALSE}
+
+Metric <- c("Eye reaction time", "Brain processing time", "Brain processing time in neutral trials", "Brain processing time in congruent trials","Brain processing time in incongruent trials")
+Value <- c(round(mydatas$eye_rt_mean.7,0), round(mydatas$mean_processtime,0), round(mydatas$neutral_meanptime.7,0), round(mydatas$congruent_meanptime.7,0), round(mydatas$incongruent_meanptime.7,0))
+Norm_m <- c("X", "X", "X", "X", "X")
+Norm_z <- c("X", "X", "X", "X", "X")
+
+
+if(file.exists("../../../Data/Norms/normative_data.txt")){
+  
+  norms <- read.table("../../../Data/Norms/normative_data.txt")
+ 
+  z_eye_rt_mean.7 <- (mydatas$eye_rt_mean.7 - mean(norms$eye_rt_mean.7)) / sd(norms$eye_rt_mean.7)
+  #z_meanprocesstime <- (mydatas$meanprocesstime - mean(norms$meanprocesstime)) / sd(norms$meanprocesstime)
+  z_neutral_meanptime.7 <- (mydatas$neutral_meanptime.7 - mean(norms$neutral_meanptime.7)) / sd(norms$neutral_meanptime.7)
+  z_congruent_meanptime.7 <- (mydatas$congruent_meanptime.7 - mean(norms$congruent_meanptime.7)) / sd(norms$congruent_meanptime.7)
+  z_incongruent_meanptime.7 <- (mydatas$incongruent_meanptime.7 - mean(norms$incongruent_meanptime.7)) / sd(norms$incongruent_meanptime.7)
+  
+  Norm_m <- c(round(mean(norms$eye_rt_mean.7),0), "X", round(mean(norms$neutral_meanptime.7),0), round(mean(norms$congruent_meanptime.7),0), round(mean(norms$incongruent_meanptime.7),0))
+  Norm_z <- c(round(z_eye_rt_mean.7,2), "X", round(z_neutral_meanptime.7,2), round(z_congruent_meanptime.7,2), round(z_incongruent_meanptime.7,2))
+ 
+}
+
+
+
+myprocessingtime <- data.frame(Metric, Value, Norm_m, Norm_z)
+
+kable(myprocessingtime, format="markdown", caption="Correlations between left & right eye")
+
+
+
+```
+
+
+
+```{r database construction, echo=FALSE}
+
+eyet_data <- data.frame(resolution, output.df, auc_alerting, auc_orienting, auc_executive)
+
+data_id <- matrix(subj, nrow=nrow(pupil_long_all),ncol=1)
+colnames(data_id) -> "subject"
+pupil_timeseries_all <- data.frame(data_id, pupil_long_all$time, pupil_long_all$dilation) 
+colnames(pupil_timeseries_all) <- c("subject", "time", "diameter_change")
+
+data_id <- matrix(subj, nrow=nrow(pupil_long_cue),ncol=1)
+colnames(data_id) -> "subject"
+pupil_timeseries_con <- data.frame(data_id, pupil_long_cue$time, pupil_long_cue$cue, pupil_long_cue$dilation, pupil_long_target$target, pupil_long_target$dilation)
+colnames(pupil_timeseries_con) <- c("subject", "time", "cue_condition", "diameter_change_cue", "target_condition", "diameter_change_target")
+
+data_id <- matrix(subj, nrow=nrow(pupil_networks),ncol=1)
+colnames(data_id) -> "subject"
+pupil_timeseries_net <- data.frame(data_id, pupil_networks$time, pupil_networks$network, pupil_networks$dilation)
+colnames(pupil_timeseries_net) <- c("subject", "time", "network", "diameter_change")
+
+data_id <- matrix(subj, nrow=nrow(xy_long_all),ncol=1)
+colnames(data_id) -> "subject"
+gaze_timeseries_all <- data.frame(data_id, xy_long_all$time, xy_long_all$distance,xy_long_all$groups)
+colnames(gaze_timeseries_all) <- c("subject", "time", "distance", "axis")
+
+data_id <- matrix(subj, nrow=nrow(x_long),ncol=1)
+colnames(data_id) -> "subject"
+gaze_timeseries_con <- data.frame(data_id, x_long$time, x_long$distance, x_long$groups, y_long$distance)
+colnames(gaze_timeseries_con) <- c("subject", "time", "distance_x", "condition", "distance_y")
+
+#write.table(eyet_data, paste("output/eyet_data", subj, ".txt", sep=""), sep="\t")
+
+if (exists("all_eyet_data") == TRUE){
+  rm(list=setdiff(ls(), c("subjects", "all_eyet_data", "j", "subj", "eyet_data", "date", "pupil_timeseries_all", "pupil_timeseries_con", "pupil_timeseries_net", "gaze_timeseries_all", "gaze_timeseries_con")))
+}
+
+if (exists("all_eyet_data") == FALSE){
+rm(list=setdiff(ls(), c("subjects", "j", "subj", "eyet_data", "date", "pupil_timeseries_all", "pupil_timeseries_con", "pupil_timeseries_net", "gaze_timeseries_all", "gaze_timeseries_con", "gaze_timeseries" )))
+}
+
+```
