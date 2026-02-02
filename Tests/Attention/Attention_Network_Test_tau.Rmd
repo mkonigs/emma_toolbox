@@ -1,0 +1,1009 @@
+---
+title: "Clinical report"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup_attention, include = FALSE}
+
+if (!require(knitr)){
+  install.packages("knitr")
+  require(knitr)
+}
+
+options(repos = c(CRAN = "http://cran.rstudio.com/"))
+
+```
+
+
+```{r load packages, include = FALSE}
+
+if (!require(retimes)) {
+    install.packages("retimes", dependencies = TRUE)
+    require(retimes)
+}
+
+if (!require(scatterplot3d)) {
+    install.packages("scatterplot3d", dependencies = TRUE)
+    require(scatterplot3d)
+}
+
+if (!require(readr)) {
+    install.packages("readr", dependencies = TRUE)
+    require(readr)
+}
+
+if (!require(lubridate)) {
+    install.packages("lubridate", dependencies = TRUE)
+    require(lubridate)
+}
+
+if (!require(tidyr)) {
+    install.packages("tidyr", dependencies = TRUE)
+    require(tidyr)
+}
+
+if (!require(gtools)) {
+    install.packages("gtools", dependencies = TRUE)
+    require(gtools)
+}
+
+if (!require(colorspace)) {
+    install.packages("colorspace", dependencies = TRUE)
+    require(colorspace)
+}
+
+if (!require(ggplot2)) {
+    install.packages("ggplot2", dependencies = TRUE)
+    require(ggplot2)
+}
+
+if (!require(httpuv)) {
+    install.packages("httpuv", dependencies = TRUE)
+    require(httpuv)
+}
+
+
+if (!require(devtools)) {
+    install.packages("devtools", dependencies = TRUE)
+    require(devtools)
+}
+
+if (!require(easyGgplot2)) {
+    install_github("kassambara/easyGgplot2", dependencies = TRUE)
+    require(easyGgplot2)
+}
+
+if (!require(plyr)) {
+    install_github("plyr", dependencies = TRUE)
+    require(plyr)
+}
+
+if (!require(retimes)) {
+    install_github("cran/retimes", dependencies = TRUE)
+    require(retimes)
+}
+
+
+library(plyr)
+library(retimes)
+library(scatterplot3d)
+library(readr)
+library(knitr)
+library(tidyr)
+library(gtools)
+library(lubridate)
+#library(easyGgplot2)
+library(devtools)
+
+```
+
+
+
+```{r load data, echo=FALSE}
+all_data <- read_csv(paste("../../Data/Raw/Attention/attention-subject-",subj,".csv",sep=""), col_types = cols())
+#all_data <- read_csv(paste("data/subject-",subj,".csv",sep=""), col_types = cols())
+
+ant_data <- data.frame(subj)
+
+
+```
+![Dr. Marsh K??nigs, m.konigs@amc.nl](amc.png)
+
+___
+
+##Attention Network Test
+
+```{r characterisics, echo=FALSE, warning=FALSE}
+
+Personal = c()
+Details = c()
+
+if (exists("naam", all_data) == TRUE){
+  name <- (unique(all_data$naam)[1])
+  Personal <- c(Personal, "Name")
+  Details <- c(Details, name)
+}
+
+if (exists("geboortedatum", all_data) == TRUE){
+  dob <- (unique(all_data$geboortedatum)[1])
+  Personal <- c(Personal, "Date of Birth")
+  Details <- c(Details, dob)
+}
+
+if (exists("geslacht", all_data) == TRUE){
+  gender <- (unique(all_data$geslacht))
+  Personal <- c(Personal, "Gender")
+  Details <- c(Details, gender)
+  ant_data <- data.frame(ant_data, gender)
+}
+
+if (exists("geboorteland_vader", all_data) == TRUE){
+  geboorteland_vader <- (unique(all_data$geboorteland_vader)[1])
+  Personal <- c(Personal, "Geboorteland vader")
+  Details <- c(Details, geboorteland_vader)
+  ant_data <- data.frame(ant_data, geboorteland_vader)
+}
+
+if (exists("geboorteland_moeder", all_data) == TRUE){
+  geboorteland_moeder <- (unique(all_data$geboorteland_moeder)[1])
+  Personal <- c(Personal, "Geboorteland moeder")
+  Details <- c(Details, geboorteland_moeder)
+  ant_data <- data.frame(ant_data, geboorteland_moeder)
+}
+
+if (exists("opleiding", all_data) == TRUE){
+  opleiding <- (unique(all_data$opleiding)[1])
+  Personal <- c(Personal, "Opleiding")
+  Details <- c(Details, opleiding)
+  ant_data <- data.frame(ant_data, opleiding)
+}
+
+if (exists("handig", all_data) == TRUE){
+  handig <- (unique(all_data$handig)[1])
+  Personal <- c(Personal, "Dominante hand")
+  Details <- c(Details, handig)
+  ant_data <- data.frame(ant_data, handig)
+}
+
+if (exists("positie", all_data) == TRUE){
+  positie <- handig <- (unique(all_data$positie)[1])
+  Personal <- c(Personal, "Position")
+  Details <- c(Details, positie)
+  ant_data <- data.frame(ant_data, positie)
+}
+
+if (exists("kleurenblind", all_data) == TRUE){
+  kleurenblind <- (unique(all_data$kleurenblind)[1])
+  Personal <- c(Personal, "Kleurenblind")
+  Details <- c(Details, kleurenblind)
+  ant_data <- data.frame(ant_data, kleurenblind)
+}
+
+if (exists("bril_lenzen", all_data) == TRUE){
+  bril <- (unique(all_data$bril_lenzen))
+  Personal <- c(Personal, "Glasses")
+  Details <- c(Details, bril)
+  ant_data <- data.frame(ant_data, bril)
+}
+
+if (exists("zicht", all_data) == TRUE){
+  zichtproblemen <- (unique(all_data$zicht))
+  Personal <- c(Personal, "Vision problems")
+  Details <- c(Details, zichtproblemen)
+  ant_data <- data.frame(ant_data, zichtproblemen)
+}
+
+if (exists("slaap", all_data) == TRUE){
+  slaapproblemen <- (unique(all_data$slaap)[1])
+  Personal <- c(Personal, "Sleeping problems")
+  Details <- c(Details, slaapproblemen)
+  ant_data <- data.frame(ant_data, slaapproblemen)
+}
+
+if (exists("wat_voor_dieet", all_data) == TRUE){
+  dieet <- (unique(all_data$wat_voor_dieet)[1])
+  Personal <- c(Personal, "Diet")
+  Details <- c(Details, dieet)
+  ant_data <- data.frame(ant_data, dieet)
+}
+
+if (exists("middelen", all_data) == TRUE){
+  middelen <- (unique(all_data$middelen)[1])
+  Personal <- c(Personal, "Substance use")
+  Details <- c(Details, middelen)
+  ant_data <- data.frame(ant_data, middelen)
+}
+
+if (exists("gehoor", all_data) == TRUE){
+  gehoorproblemen <- (unique(all_data$gehoor)[1])
+  Personal <- c(Personal, "Hearing Problems")
+  Details <- c(Details, gehoorproblemen)
+  ant_data <- data.frame(ant_data, gehoorproblemen)
+}
+
+if (exists("hersenschudding", all_data) == TRUE){
+  hersenschudding <- unique(all_data$hersenschudding)[1]
+  Personal <- c(Personal, "History of concussion")
+  Details <- c(Details, hersenschudding)
+  ant_data <- data.frame(ant_data, hersenschudding)
+}
+
+if (exists("wanneer_hersenschudding", all_data) == TRUE){
+  t_hersenschudding <- (unique(all_data$wanneer_hersenschudding)[1])
+  Personal <- c(Personal, "Previous concussion")
+  Details <- c(Details, t_hersenschudding)
+  ant_data <- data.frame(ant_data, t_hersenschudding)
+}
+
+if (exists("aandoeningen", all_data) == TRUE){
+  aandoening <- (unique(all_data$aandoeningen)[1])
+  Personal <- c(Personal, "Condition")
+  Details <- c(Details, aandoening)
+  ant_data <- data.frame(ant_data, aandoening)
+}
+
+if (exists("aandoening_anders", all_data) == TRUE){
+  aandoening_anders <- (unique(all_data$aandoening_anders)[1])
+  Personal <- c(Personal, "Condition, else")
+  Details <- c(Details, aandoening_anders)
+  ant_data <- data.frame(ant_data, aandoening_anders)
+}
+
+if (exists("hoofdletsel", all_data) == TRUE){
+  hoofdletsel <- (unique(all_data$hoofdletsel)[1])
+  Personal <- c(Personal, "Opname voor hoofdletsel")
+  Details <- c(Details, hoofdletsel)
+  ant_data <- data.frame(ant_data, hoofdletsel)
+}
+
+if (exists("migraine", all_data) == TRUE){
+  migraine <- (unique(all_data$migraine)[1])
+  Personal <- c(Personal, "Diagnose migraine")
+  Details <- c(Details, migraine)
+  ant_data <- data.frame(ant_data, migraine)
+}
+
+if (exists("leerstoornis", all_data) == TRUE){
+  leerstoornis <- (unique(all_data$leerstoornis)[1])
+  Personal <- c(Personal, "Diagnose leerstoornis")
+  Details <- c(Details, leerstoornis)
+  ant_data <- data.frame(ant_data, leerstoornis)
+}
+
+if (exists("adhd", all_data) == TRUE){
+  adhd <- (unique(all_data$adhd)[1])
+  Personal <- c(Personal, "Diagnose ADD/ADHD")
+  Details <- c(Details, adhd)
+  ant_data <- data.frame(ant_data, adhd)
+}
+
+if (exists("psych", all_data) == TRUE){
+  psych <- (unique(all_data$psych)[1])
+  Personal <- c(Personal, "Psychiatrische diagnose")
+  Details <- c(Details, psych)
+  ant_data <- data.frame(ant_data, psych)
+}
+
+if (exists("welke_medicijnen", all_data) == TRUE){
+  medicatie <- (unique(all_data$welke_medicijnen)[1])
+  Personal <- c(Personal, "Medication")
+  Details <- c(Details, medicatie)
+  ant_data <- data.frame(ant_data, medicatie)
+}
+
+if (exists("welke_medicijnen", all_data) == TRUE){
+  medicatie <- (unique(all_data$welke_medicijnen)[1])
+  Personal <- c(Personal, "Medication")
+  Details <- c(Details, medicatie)
+  ant_data <- data.frame(ant_data, medicatie)
+}
+
+
+if (length(Personal) > 0 & length(Details) > 0){
+  mydetails <- data.frame(Personal,Details)
+  kable(mydetails, format="markdown", caption="Personal details", align="l")
+}
+
+```
+
+```{r test details, echo = FALSE}
+
+Test <- c()
+Details <- c()
+
+
+if (exists("opensesame_version", all_data) == TRUE){
+  os_version <- unique(all_data$opensesame_version)[1]
+  Test <- c(Test, "OS Version")
+  Details <- c(Details, os_version)
+}
+
+if (exists("experiment_file", all_data) == TRUE){
+  test_version <- unique(all_data$experiment_file)[1]
+  Test <- c(Test, "Test Version")
+  Details <- c(Details, test_version)
+}
+
+if (exists("meting", all_data) == TRUE){
+  meting <- unique(all_data$meting)[1]
+  Test <- c(Test, "Measurement Type")
+  Details <- c(Details, meting)
+  ant_data <- data.frame(ant_data, meting)
+}
+
+if (exists("datetime", all_data) == TRUE){
+  time <- unique(all_data$datetime)[1]
+  Test <- c(Test, "Date and time")
+  Details <- c(Details, time[1])
+}
+
+if (exists("canvas_backend", all_data) == TRUE){
+  backend <- unique(all_data$canvas_backend)[1]
+  Test <- c(Test, "Backend")
+  Details <- c(Details, backend)
+}
+
+date <- c(strsplit(time," "))
+date <- unlist(date)
+date <- date[1]
+test <- mdy(date)
+
+if ((exists("dob") == TRUE) & (exists("time") == TRUE)){
+  dob <- unique(all_data$geboortedatum)[1]
+  dobi <- dmy(dob)
+  age <- as.numeric((test-dobi)/365)
+  }
+
+if (exists("age", mode="variable") == TRUE){
+  ant_data <- data.frame(ant_data, age)
+  Test <- c(Test, "Age of Subject")
+  Details <- c(Details, age)
+}
+
+
+mytestdetails <- data.frame(Test, Details)
+
+kable(mytestdetails, format="markdown", caption="Test details", align="l")
+
+
+
+```
+
+#Symptom Checklist
+```{r symptom checklist, echo=FALSE}
+
+
+if (exists("center", all_data) == TRUE){
+
+if( all_data$center[1] != "Ajax" &  all_data$center[1]!= "AMC" & all_data$center[1]!= "generic" & all_data$center[1]!= "Regulier"){
+
+if ((exists("hoofdpijn", all_data) == TRUE) & (is.na(all_data$hoofdpijn[1]) == FALSE)){
+  hoofdpijn <- unique(all_data$hoofdpijn)[1]
+  druk_op_hoofd <- unique(all_data$druk_op_hoofd)[1]
+  balans <- unique(all_data$balans)[1]
+  nekpijn <- unique(all_data$nekpijn)[1]
+  misselijkheid <- unique(all_data$misselijkheid)[1]
+  braken <- unique(all_data$braken)[1]
+  zichtproblemen <- unique(all_data$zichtproblemen)[1]
+  gehoorproblemen <- unique(all_data$gehoorproblemen)[1]
+  niet_goed_voelen <- unique(all_data$niet_goed_voelen)[1]
+  wazig_voelen <- unique(all_data$wazig_voelen)[1]
+  verward_voelen <- unique(all_data$verward_voelen)[1]
+  gevoel_langzaam <- unique(all_data$gevoel_langzaam)[1]
+  gevoel_mistig <- unique(all_data$gevoel_mistig)[1]
+  slaperigheid <- unique(all_data$slaperigheid)[1]
+  vermoeidheid <- unique(all_data$vermoeidheid)[1]
+  emotioneel <- unique(all_data$emotioneel)[1]
+  geirriteerd <- unique(all_data$geirriteerd)[1]
+  concentratie <- unique(all_data$concentratie)[1]
+  onthouden <- unique(all_data$onthouden)[1]
+  droevigheid <- unique(all_data$nerveus_bang)[1]
+  slaap <- unique(all_data$slaapproblemen)[1]
+  meer_slapen <- unique(all_data$meer_slapen)[1]
+  gevoeligheid_licht <- unique(all_data$gevoeligheid_licht)[1]
+  gevoeligheid_geluid <- unique(all_data$gevoeligheid_geluid)[1]
+
+symptom_score = hoofdpijn + druk_op_hoofd + balans + nekpijn + misselijkheid + braken + zichtproblemen + gehoorproblemen + niet_goed_voelen + wazig_voelen + verward_voelen + gevoel_langzaam + gevoel_mistig + slaperigheid + vermoeidheid + emotioneel + geirriteerd + concentratie + onthouden + droevigheid + slaap + meer_slapen + gevoeligheid_licht + gevoeligheid_geluid
+
+  symptoms <- matrix(c(hoofdpijn, druk_op_hoofd, balans, nekpijn, misselijkheid, braken, zichtproblemen, gehoorproblemen, niet_goed_voelen, wazig_voelen, verward_voelen, gevoel_langzaam, gevoel_mistig, slaperigheid, vermoeidheid, emotioneel, geirriteerd, concentratie, onthouden, droevigheid, slaap, meer_slapen, gevoeligheid_licht, gevoeligheid_geluid), ncol=24, nrow=1)
+
+  colnames(symptoms) <- c("hoofdpijn", "druk op hoofd", "balans", "nekpijn", "misselijk", "braken", "zicht", "gehoor", "niet goed voelen", "wazig", "verward", "langzaam", "mistig", "slaperig", "vermoeid", "emotioneel", "geirriteerd", "concentratie", "onthouden", "droevig", "slaap", "meer slaap", "lichtgevoeligheid", "geluidgevoeligheid")
+
+  symptoms <- symptoms[,order(symptoms)]
+  barplot(symptoms, horiz=T, las=1, xlab="Symptom Score (0-6)", cex.names=0.45, space=c(1,2))
+  print(paste ("Total Symptom Score: ", symptom_score, sep=""))
+}
+
+if (exists("hoofdpijn") == TRUE){
+  ant_data <- data.frame(ant_data, symptom_score, hoofdpijn, druk_op_hoofd, balans, nekpijn, misselijkheid, braken, zichtproblemen, gehoorproblemen, niet_goed_voelen, wazig_voelen, verward_voelen, gevoel_langzaam, gevoel_mistig, slaperigheid, vermoeidheid, emotioneel, geirriteerd, concentratie, onthouden, droevigheid, slaap, meer_slapen, gevoeligheid_licht, gevoeligheid_geluid)
+}
+
+  if ((exists("hoofdpijn", all_data) == TRUE) & (is.na(all_data$hoofdpijn[1]) == FALSE)){
+  ant_data <- data.frame(ant_data, symptom_score, hoofdpijn, druk_op_hoofd, balans, nekpijn, misselijkheid, braken, zichtproblemen, gehoorproblemen, niet_goed_voelen, wazig_voelen, verward_voelen, gevoel_langzaam, gevoel_mistig, slaperigheid, vermoeidheid, emotioneel, geirriteerd, concentratie, onthouden, droevigheid, slaap, meer_slapen, gevoeligheid_licht, gevoeligheid_geluid)
+  }
+  
+  
+  # SCAT-5 symptoms scale 
+} else if (all_data$center[1] == "Ajax"){
+  
+  if ((exists("hoofdpijn", all_data) == TRUE) & (is.na(all_data$hoofdpijn[1]) == FALSE)){
+  
+  hoofdpijn <- unique(all_data$hoofdpijn)
+  druk_op_hoofd <- unique(all_data$druk_op_hoofd)
+  nekpijn <- unique(all_data$nekpijn)
+  misselijkheid <- unique(all_data$misselijkheid)
+  duizeligheid <- unique(all_data$duizeligheid)
+  zichtproblemen <- unique(all_data$zichtproblemen)
+  balans <-  unique(all_data$balans)
+  gevoeligheid_licht  <- unique(all_data$gevoeligheid_licht)
+  gevoeligheid_geluid <-  unique(all_data$gevoeligheid_geluid)
+  gevoel_langzaam  <- unique(all_data$gevoel_langzaam)
+  gevoel_mistig <- unique(all_data$gevoel_mistig)
+  niet_goed_voelen <- unique(all_data$niet_goed_voelen)
+  concentratie <- unique(all_data$concentratie)
+  onthouden <- unique(all_data$onthouden)
+  vermoeidheid  <- unique(all_data$vermoeidheid)
+  verward_voelen <- unique(all_data$verward_voelen)
+  wazig_voelen <- unique(all_data$wazig_voelen)
+  emotioneel <- unique(all_data$emotioneel)
+  geirriteerd <- unique(all_data$geirriteerd)
+  droevigheid <-  unique(all_data$droevigheid)
+  nerveus_bang <- unique(all_data$nerveus_bang)
+  slaapproblemen <-  unique(all_data$slaapproblemen)
+  
+symptom_score = hoofdpijn + druk_op_hoofd + nekpijn + misselijkheid + duizeligheid + zichtproblemen + balans + gevoeligheid_licht + gevoeligheid_geluid + gevoel_langzaam + gevoel_mistig + niet_goed_voelen + concentratie + onthouden + vermoeidheid + verward_voelen + wazig_voelen + emotioneel + geirriteerd + droevigheid + nerveus_bang + slaapproblemen
+
+symptoms <- matrix(c(hoofdpijn, druk_op_hoofd, nekpijn, misselijkheid, duizeligheid, zichtproblemen, balans, gevoeligheid_licht, gevoeligheid_geluid, gevoel_langzaam, gevoel_mistig, niet_goed_voelen, concentratie, onthouden, vermoeidheid, verward_voelen, wazig_voelen, emotioneel, geirriteerd, droevigheid, nerveus_bang, slaapproblemen), ncol=22, nrow=1)
+
+colnames(symptoms) <- c("hoofdpijn", "druk op hoofd", "nekpijn", "misselijkheid", "duizeligheid", "zichtproblemen", "balans", "gevoeligheid voor licht", "gevoeligheid voor geluid", "langzaam gevoel", "mistig gevoel", "niet goed voelen", "concentratieproblemen", "geheugenproblemen", "vermoeidheid", "verward voelen", "wazig voelen", "emotioneel", "geirriteerd", "droevigheid", "nerveus/bang", "slaapproblemen")
+
+  symptoms <- symptoms[,order(symptoms)]
+  barplot(symptoms, horiz=T, las=1, xlab="Symptom Score (0-6)", cex.names=0.45, space=c(1,2))
+  print(paste ("Total Symptom Score: ", symptom_score, sep=""))
+}
+
+  if ((exists("hoofdpijn", all_data) == TRUE) & (is.na(all_data$hoofdpijn[1]) == FALSE)){
+  ant_data <- data.frame(ant_data, hoofdpijn, druk_op_hoofd, nekpijn, misselijkheid, duizeligheid, zichtproblemen, balans, gevoeligheid_licht, gevoeligheid_geluid, gevoel_langzaam, gevoel_mistig, niet_goed_voelen, concentratie, onthouden, vermoeidheid, verward_voelen, wazig_voelen, emotioneel, geirriteerd, droevigheid, nerveus_bang, slaapproblemen)
+  }
+  
+}
+
+}
+```
+
+___
+
+```{r select data, echo=FALSE}
+
+myvars <- c("subject_nr",
+            "block",
+            "count_new_srbox_2",
+            "correct_new_srbox_2",
+            "response_time_new_srbox_2",
+            "cue_condition",
+            "target_condition")
+
+mydatas <- all_data[myvars]
+
+colnames(mydatas) <- c("subject", "block", "trial", "correct", "rt", "cue", "target")
+
+#Older files have other values, for example block_1 instead of 1. The following lines correct this.
+
+mydatas$block <- gsub("block_","",mydatas$block)
+mydatas$block <- gsub("practice","",mydatas$block)
+mydatas$block <- as.numeric(mydatas$block)
+
+
+```
+
+___
+
+
+###Timeline of Task Performance
+```{r Timeline, echo=FALSE}
+
+if ("simple" %in% all_data$cue_condition == TRUE){
+
+  #scatterplot3d(mydata$trial,mydata$rt,mydata$correct, xlab="Trial number", ylab="Reaction Time (ms)", zlab="Accuracy")
+  mydata <- mydatas[ which(mydatas$trial>=0 & mydatas$rt > 150 & mydatas$cue == "simple" & mydatas$block != 0), ]
+
+  plot(mydata$trial, mydata$rt, 
+  xlab="Trial Number ", ylab="Reaction Time (ms) ", pch=19, main = "Simple")
+
+  lines(lowess(mydata$trial,mydata$rt), col="blue", pch=15) # lowess line (x,y)
+}
+
+  
+
+
+```
+
+```{r Complex, echo=FALSE}
+if (exists("count_Blok4_ANT", all_data) == TRUE){
+  mydata <- mydatas[ which(mydatas$trial>=0 & mydatas$rt > 150 & mydatas$cue != "simple" & mydatas$block >= 3), ]
+} else {
+  mydata <- mydatas[ which(mydatas$trial>=0 & mydatas$rt > 150 & mydatas$cue != "simple" & mydatas$block >= 1), ]
+}
+
+  for (i in unique(mydata$block)){
+
+  #repeat for seperate blocks
+  assign(paste("mydata_", i, sep=""), mydata[ which(mydata$trial>=0 & mydata$rt > 150 & mydata$block == i), ])
+
+  myrt <- mydata[ which(mydata$trial>=0 & mydata$rt > 150) & mydata$correct==1 , ]
+  #repeat for seperate blocks
+  assign(paste("myrt_", i, sep=""), mydata[ which(mydata$trial>=0 & mydata$rt > 150 & mydata$correct==1 & mydata$block == i & mydata$cue != "simple"), ])
+  }
+  
+plot(mydata$trial, mydata$rt, 
+xlab="Trial Number ", ylab="Reaction Time (ms) ", pch=19, main="Attention Network Test")
+
+lines(lowess(mydata$trial,mydata$rt), col="blue", pch=15) # lowess line (x,y)
+
+
+
+```
+
+**Legend.** Timeline of task performance, showing reaction time in correct responses as a function of trial number. A loess curve indicates the trend over time.
+
+___
+
+
+###Simple Information Processing
+```{r calculate simple information processing parameters, echo=FALSE}
+
+if ("simple" %in% all_data$cue_condition == TRUE){
+    
+  mydata <- mydatas[ which(mydatas$trial>=0 & mydatas$rt > 150 & mydatas$cue == "simple" & mydatas$block != 0), ]
+  mrt_simple <- mean(mydata$rt [mydata$correct==1 & mydata$cue=="simple"])
+  sd_simple <- sd(mydata$rt [mydata$correct==1 & mydata$cue=="simple"])
+
+  cutoff_simple <- mrt_simple + (3 * sd_simple)
+  mrt_simple <- mean(mydata$rt [mydata$correct==1 & mydata$cue =="simple" & mydata$rt <= cutoff_simple])
+  sd_simple <- sd(mydata$rt [mydata$correct==1 & mydata$cue =="simple" & mydata$rt <= cutoff_simple])
+  count_simple <- length(mydata$rt [mydata$correct==1 & mydata$cue =="simple" & mydata$rt <= cutoff_simple])
+  acc_simple <- mean(mydata$correct [mydata$cue=="simple"])*100
+
+  mrt_simple_dist <- (mydata$rt [mydata$correct==1 & mydata$cue=="simple" & mydata$rt <= cutoff_simple])
+  mrt_simple_dist_z <- scale(mrt_simple_dist, center = TRUE, scale=FALSE)
+  mrt_simple_dist_lab <- (mydata$cue [mydata$correct==1 & mydata$cue=="simple" & mydata$rt <= cutoff_simple])
+  mrt_simple_dist_block <- (mydata$block [mydata$correct==1 & mydata$cue=="simple" & mydata$rt <= cutoff_simple])
+  mrt_simple_dist <- data.frame(mrt_simple_dist, mrt_simple_dist_lab, mrt_simple_dist_block)
+  colnames(mrt_simple_dist) <- c("rt", "condition", "block")
+  mrt_simple_dist_z <- data.frame(mrt_simple_dist_z, mrt_simple_dist_lab, mrt_simple_dist_block)
+  colnames(mrt_simple_dist_z) <- c("rt", "condition", "block")
+
+  Metric <- c("Mean Reaction Time on Simple trials (ms)", "SD of Reaction Time on Simple trials (ms)", "Accuracy on Simple trials (%)")
+  Value <- c(round(mrt_simple,0), round(sd_simple,0), round(acc_simple,0))
+  myprocessing <- data.frame(Metric, Value)
+
+  kable(myprocessing, format="markdown", caption="Simple Information Processing")
+  
+}
+```
+
+```{r calculate simple information processing ex-gaussian, echo=FALSE}
+
+if ("simple" %in% all_data$cue_condition == TRUE){
+
+  Value <- round(mexgauss(mrt_simple_dist$rt),0)
+  Metric <- c("(ms)")
+  mygaussian<- data.frame(Metric, Value)
+
+  mu_simple <- Value[1]
+  sigma_simple <- Value[2]
+  tau_simple <- Value[3]
+
+  ggplot2.histogram(mrt_simple_dist$rt, xName="rt", scale="density", binwidth = 10, fill="white", color="black", addDensityCurve=TRUE, densityFill='#FF6666')
+
+
+  hist(mrt_simple_dist$rt, xlab="Simple Reaction Time (ms)", main=NULL, breaks=20)
+  kable(mygaussian,format="markdown", caption="Ex-Gaussian Parameters of Simple Information Processing")
+
+}
+
+```
+
+---
+
+
+###Global Information Processing
+```{r calculate ANT information processing parameters, echo=FALSE}
+
+if (exists("count_Blok4_ANT", all_data) == TRUE){
+  mydata <- mydatas[ which(mydatas$trial>=0 & mydatas$rt > 150 & mydatas$cue != "simple" & mydatas$block >= 3), ]
+} else {
+  mydata <- mydatas[ which(mydatas$trial>=0 & mydatas$rt > 150 & mydatas$cue != "simple" & mydatas$block >= 1), ]
+}
+
+# skip first trial
+mydata <- mydata[-c(1),]
+
+
+mrt_neutral <- mean(mydata$rt [mydata$correct==1 & mydata$target=="neutral"])
+sd_neutral <- sd(mydata$rt [mydata$correct==1 & mydata$target=="neutral"])
+cutoff_neutral <- mrt_neutral + (3 * sd_neutral)
+
+mrt_neutral <- mean(mydata$rt [mydata$correct==1 & mydata$target=="neutral" & mydata$rt <= cutoff_neutral])
+sd_neutral <- sd(mydata$rt [mydata$correct==1 & mydata$target=="neutral" & mydata$rt <= cutoff_neutral])
+count_neutral <- length(mydata$rt [mydata$correct==1 & mydata$target=="neutral" & mydata$rt <= cutoff_neutral])
+acc_neutral <- mean(mydata$correct [mydata$target=="neutral"])*100
+
+for (i in unique(mydata$block)){
+
+  assign(paste("mrt_neutral_", i, sep=""), mean(mydata$rt [mydata$correct==1 & mydata$target=="neutral" & mydata$rt <= cutoff_neutral & mydata$block == i]))
+  
+  assign(paste("sd_neutral_", i, sep=""), sd(mydata$rt [mydata$correct==1 & mydata$target=="neutral" & mydata$rt <= cutoff_neutral & mydata$block == i]))
+
+  assign(paste("count_neutral_",i, sep=""), length(mydata$rt [mydata$correct==1 & mydata$target=="neutral" & mydata$rt <= cutoff_neutral & mydata$block == i]))
+
+  assign(paste("acc_neutral_", i, sep=""), mean(mydata$correct [mydata$target=="neutral" & mydata$block == i])*100)
+
+} 
+
+
+
+Metric <- c("Mean Reaction Time on Neutral trials (ms)", "SD of Reaction Time on Neutral trials (ms)", "Accuracy on Neutral trials (%)")
+Value <- c(round(mrt_neutral,0), round(sd_neutral,0), round(acc_neutral,0))
+Norm_m <- c("X", "X", "X")
+Norm_z <- c("X", "X", "X")
+
+if(file.exists("../../Data/Norms/normative_data.txt")){
+  
+  norms <- read.table("../../Data/Norms/normative_data.txt")
+  
+  z_mrt_neutral <- (mrt_neutral - mean(norms$mrt_neutral)) / sd(norms$mrt_neutral)
+
+    z_sd_neutral <- (sd_neutral - mean(norms$sd_neutral)) / sd(norms$sd_neutral)
+  
+  Norm_m <- c(round(mean(norms$mrt_neutral),0), round(mean(norms$sd_neutral),0), "X")
+  Norm_z <- c(round(z_mrt_neutral,2), round(z_sd_neutral,2), "X")
+}
+
+
+myprocessing <- data.frame(Metric, Value, Norm_m, Norm_z)
+
+kable(myprocessing, format="markdown", caption="Information Processing")
+
+```
+**Legend.** Reaction times are based on correct responses.
+Mean Reaction Time: speed of processing
+SD of Reaction Time: variability of processing
+Accuracy: quality of processing
+
+___
+
+
+
+###Attention Networks
+```{r calculate attention network parameters, echo=FALSE}
+
+mrt_fixation <- mean(mydata$rt [mydata$correct==1 & mydata$cue=="fixation"])
+sd_fixation <- sd(mydata$rt [mydata$correct==1 & mydata$cue=="fixation"])
+
+cutoff_fixation <- mrt_fixation + (3 * sd_fixation)
+mrt_fixation <- mean(mydata$rt [mydata$correct==1 & mydata$cue =="fixation" & mydata$rt <= cutoff_fixation])
+sd_fixation <- sd(mydata$rt [mydata$correct==1 & mydata$cue =="fixation" & mydata$rt <= cutoff_fixation])
+count_fixation <- length(mydata$rt [mydata$correct==1 & mydata$cue =="fixation" & mydata$rt <= cutoff_fixation])
+acc_fixation <- mean(mydata$correct [mydata$cue=="fixation"])*100
+
+mrt_fixation_dist <- (mydata$rt [mydata$correct==1 & mydata$cue=="fixation" & (mydata$target=="neutral" | mydata$target=="congruent") & mydata$rt <= cutoff_fixation])
+mrt_fixation_dist_z <- scale(mrt_fixation_dist, center = TRUE, scale=FALSE)
+mrt_fixation_dist_lab <- (mydata$cue [mydata$correct==1 & mydata$cue=="fixation" & (mydata$target=="neutral" | mydata$target=="congruent") & mydata$rt <= cutoff_fixation])
+mrt_fixation_dist_block <- (mydata$block [mydata$correct==1 & mydata$cue=="fixation" & (mydata$target=="neutral" | mydata$target=="congruent") & mydata$rt <= cutoff_fixation])
+mrt_fixation_dist <- data.frame(mrt_fixation_dist, mrt_fixation_dist_lab, mrt_fixation_dist_block)
+colnames(mrt_fixation_dist) <- c("rt", "condition", "block")
+mrt_fixation_dist_z <- data.frame(mrt_fixation_dist_z, mrt_fixation_dist_lab, mrt_fixation_dist_block)
+colnames(mrt_fixation_dist_z) <- c("rt", "condition", "block")
+
+mrt_cue <- mean(mydata$rt [mydata$correct==1 & mydata$cue=="cue"])
+sd_cue <- mean(mydata$rt [mydata$correct==1 & mydata$cue=="cue"])
+
+cutoff_cue <- mrt_cue + (3 * sd_cue)
+mrt_cue <- mean(mydata$rt [mydata$correct==1 & mydata$cue=="cue" & mydata$rt <= cutoff_cue])
+sd_cue <- sd(mydata$rt [mydata$correct==1 & mydata$cue=="cue" & mydata$rt <= cutoff_cue])
+count_cue <- length(mydata$rt [mydata$correct==1 & mydata$cue=="cue" & mydata$rt <= cutoff_cue])
+acc_cue <- mean(mydata$correct [mydata$cue=="cue"])*100
+
+mrt_cue_dist <- (mydata$rt [mydata$correct==1 & mydata$cue=="cue" & (mydata$target=="neutral" | mydata$target=="congruent") & mydata$rt <= cutoff_cue])
+mrt_cue_dist_lab <- (mydata$cue [mydata$correct==1 & mydata$cue=="cue" & (mydata$target=="neutral" | mydata$target=="congruent") & mydata$rt <= cutoff_cue])
+mrt_cue_dist_block <- (mydata$block [mydata$correct==1 & mydata$cue=="cue" & (mydata$target=="neutral" | mydata$target=="congruent") & mydata$rt <= cutoff_cue])
+mrt_cue_dist_z <- scale(mrt_cue_dist, center = TRUE, scale=FALSE)
+mrt_cue_dist <- data.frame(mrt_cue_dist, mrt_cue_dist_lab, mrt_cue_dist_block)
+colnames(mrt_cue_dist) <- c("rt", "condition", "block")
+mrt_cue_dist_z <- data.frame(mrt_cue_dist_z, mrt_cue_dist_lab, mrt_cue_dist_block)
+colnames(mrt_cue_dist_z) <- c("rt", "condition", "block")
+
+mrt_spatial <- mean(mydata$rt [mydata$correct==1 & mydata$cue=="spatial"])
+sd_spatial <- mean(mydata$rt [mydata$correct==1 & mydata$cue=="spatial"])
+
+cutoff_spatial <- mrt_spatial + (3 * sd_spatial)
+mrt_spatial <- mean(mydata$rt [mydata$correct==1 & mydata$cue=="spatial" & mydata$rt <= cutoff_spatial])
+sd_spatial <- sd(mydata$rt [mydata$correct==1 & mydata$cue=="spatial" & mydata$rt <= cutoff_spatial])
+count_spatial <- length(mydata$rt [mydata$correct==1 & mydata$cue=="spatial" & mydata$rt <= cutoff_spatial])
+acc_spatial <- mean(mydata$correct [mydata$cue=="spatial"])*100
+
+mrt_spatial_dist <- (mydata$rt [mydata$correct==1 & mydata$cue=="spatial" & (mydata$target=="neutral" | mydata$target=="congruent") & mydata$rt <= cutoff_spatial])
+mrt_spatial_dist_z <- scale(mrt_spatial_dist, center = TRUE, scale=FALSE)
+mrt_spatial_dist_lab <- (mydata$cue [mydata$correct==1 & mydata$cue=="spatial" & (mydata$target=="neutral" | mydata$target=="congruent") & mydata$rt <= cutoff_spatial])
+mrt_spatial_dist_block <- (mydata$block [mydata$correct==1 & mydata$cue=="spatial" & (mydata$target=="neutral" | mydata$target=="congruent") & mydata$rt <= cutoff_spatial])
+mrt_spatial_dist <- data.frame(mrt_spatial_dist, mrt_spatial_dist_lab, mrt_spatial_dist_block)
+colnames(mrt_spatial_dist) <- c("rt", "condition", "block")
+mrt_spatial_dist_z <- data.frame(mrt_spatial_dist_z, mrt_spatial_dist_lab, mrt_spatial_dist_block)
+colnames(mrt_spatial_dist_z) <- c("rt", "condition", "block")
+
+mrt_congruent <- mean(mydata$rt [mydata$correct==1 & mydata$target=="congruent"])
+sd_congruent <- mean(mydata$rt [mydata$correct==1 & mydata$target=="congruent"])
+
+cutoff_congruent <- mrt_congruent + (3 * sd_congruent)
+mrt_congruent <- mean(mydata$rt [mydata$correct==1 & mydata$target=="congruent" & mydata$rt <= cutoff_congruent])
+sd_congruent <- sd(mydata$rt [mydata$correct==1 & mydata$target=="congruent" & mydata$rt <= cutoff_congruent])
+count_congruent <- length(mydata$rt [mydata$correct==1 & mydata$target=="congruent" & mydata$rt <= cutoff_congruent])
+acc_congruent <- mean(mydata$correct [mydata$target=="congruent"])*100
+
+
+mrt_incongruent <- mean(mydata$rt [mydata$correct==1 & mydata$target=="incongruent"])
+sd_incongruent <- mean(mydata$rt [mydata$correct==1 & mydata$target=="incongruent"])
+
+cutoff_incongruent <- mrt_incongruent + (3 * sd_incongruent)
+mrt_incongruent <- mean(mydata$rt [mydata$correct==1 & mydata$target=="incongruent" & mydata$rt <= cutoff_incongruent])
+sd_incongruent <- sd(mydata$rt [mydata$correct==1 & mydata$target=="incongruent" & mydata$rt <= cutoff_incongruent])
+count_incongruent <- mean(mydata$rt [mydata$correct==1 & mydata$target=="incongruent" & mydata$rt <= cutoff_incongruent])
+acc_incongruent <- mean(mydata$correct [mydata$target=="incongruent"])*100
+
+
+alerting_mrt <- mrt_cue - mrt_fixation
+alerting_acc <- acc_cue - acc_fixation
+
+orienting_mrt <- mrt_spatial - mrt_cue
+orienting_acc <- acc_spatial - acc_cue
+
+executive_mrt <- mrt_incongruent - mrt_congruent
+executive_acc <- acc_incongruent - acc_congruent
+
+max_block = toString(max(unique(mydata$block)))
+min_block = toString(min(unique(mydata$block)))
+
+sustained_mrt <- eval(parse(text=paste("mrt_neutral_", max_block, sep=""))) - eval(parse(text=paste("mrt_neutral_", min_block, sep=""))) 
+sustained_acc <- eval(parse(text=paste("acc_neutral_", max_block, sep=""))) - eval(parse(text=paste("acc_neutral_", min_block, sep=""))) 
+
+
+
+networks_mrt <- c(alerting_mrt, orienting_mrt, executive_mrt)
+#barplot(networks_mrt, main="Attention Networks", xlab="Network", ylab="Change in MRT (ms)", names.arg=c("Alerting","Orienting","Executive"), xpd=TRUE, border="black")
+
+networks_acc <- c(alerting_acc, orienting_acc, executive_acc)
+#barplot(networks_acc, main="Attention Networks", xlab="Network", ylab="Change in Accuracy (%)", names.arg=c("Alerting","Orienting","Executive"), xpd=TRUE, border="black")
+
+m_alerting_mrt <- "X"
+z_alerting_mrt <- "X"
+m_alerting_acc <- "X"
+z_alerting_acc <- "X"
+
+m_orienting_mrt <- "X"
+z_orienting_mrt <- "X"
+m_orienting_acc <- "X"
+z_orienting_acc <- "X"
+
+m_executive_mrt <- "X"
+z_executive_mrt <- "X"
+m_executive_acc <- "X"
+z_executive_acc <- "X"
+
+m_sustained_mrt <- "X"
+z_sustained_mrt <- "X"
+m_sustained_acc <- "X"
+z_sustained_acc <- "X"
+
+if(file.exists("../../Data/Norms/normative_data.txt")){
+  
+  norms <- read.table("../../Data/Norms/normative_data.txt")
+  
+m_alerting_mrt <- round(mean(norms$alerting_mrt),0)
+m_orienting_mrt <- round(mean(norms$orienting_mrt),0)
+m_executive_mrt <- round(mean(norms$executive_mrt),0)
+m_executive_acc <- round(mean(norms$executive_acc),0)
+m_sustained_mrt <- round(mean(norms$sustained_mrt),0)
+
+  z_alerting_mrt <- round((alerting_mrt - mean(norms$alerting_mrt)) / sd(norms$alerting_mrt),2)
+  
+  z_orienting_mrt <- round((orienting_mrt - mean(norms$orienting_mrt)) / sd(norms$orienting_mrt),2)
+  
+  z_executive_mrt <- round((executive_mrt - mean(norms$executive_mrt)) / sd(norms$executive_mrt),2)
+
+  z_executive_acc <- round((executive_acc - mean(norms$executive_acc)) / sd(norms$executive_acc),2)
+  
+  z_sustained_mrt <- round((sustained_mrt - mean(norms$sustained_mrt)) / sd(norms$executive_mrt),2)
+
+}
+  
+Metric <- c("Change in MRT (ms)", "__Norm mean", "__Norm z-score", "Change in accuracy (%)", "__Norm mean", "__Norm z-score")
+Alerting <- c(round(alerting_mrt,0),m_alerting_mrt, z_alerting_mrt, round(alerting_acc,0), m_alerting_acc, z_alerting_acc)
+
+Orienting <- c(round(orienting_mrt,0),m_orienting_mrt, z_orienting_mrt, round(orienting_acc,0), m_orienting_acc, z_orienting_acc)
+
+Executive <- c(round(executive_mrt,0),m_executive_mrt, z_executive_mrt, round(executive_acc,0), m_executive_acc, z_executive_acc)
+
+Sustained <- c(round(sustained_mrt,0),m_sustained_mrt, z_sustained_mrt, round(sustained_acc,0), m_sustained_acc, z_sustained_acc)
+
+
+
+
+mynetworks <- data.frame(Metric, Alerting, Orienting, Executive, Sustained)
+
+kable(mynetworks,format="markdown", caption="Attention Networks")
+
+```
+**Legend.** Attention networks are based on Posner's model.
+Alerting attention is the ability to achieve and maintain an alert state.
+Orienting attention is the ability to spatielly orient to environmental information.
+Executive attention is the ability to resolve conflict between competing responses.
+
+___
+
+
+
+###Ex-Gaussian Analysis of Attention Network Test
+```{r display table, results = 'asis', echo = FALSE}
+
+#exgaussian overall, odd and even
+
+all_dist <- rbind(mrt_fixation_dist, mrt_cue_dist, mrt_spatial_dist)
+
+all_dist_z <- rbind(mrt_fixation_dist_z, mrt_cue_dist_z, mrt_spatial_dist_z)
+
+#myrtdist <- mydata[ which(mydata$trial>=0 & mydata$rt > 150 & mydata$correct==1 ), ]
+myrtdist <- all_dist_z
+
+trial <- rownames(all_dist_z)
+trial <- as.numeric(trial)
+myrtdist <- data.frame(all_dist_z, trial)
+
+odd <- odd(myrtdist$trial)
+even <- even(myrtdist$trial)
+
+myrtdist <- data.frame(myrtdist, odd, even)
+myrtdist_odd <- myrtdist[ which(myrtdist$odd=='TRUE'), ]
+myrtdist_even <- myrtdist[ which(myrtdist$even=='TRUE'), ]
+  
+count_gaussian <- length(myrtdist$rt)
+
+exg_odd <- round(mexgauss(myrtdist_odd$rt),0)
+exg_even <- round(mexgauss(myrtdist_even$rt),0)
+
+#exgaussian per block
+
+for (i in unique(mydata$block)){
+  
+  assign(paste("myrtdist_", i, sep=""), myrtdist[ which(myrtdist$block == i), ])
+  assign(paste("exg_", i, sep=""), round(mexgauss(eval(parse(text=paste("myrtdist_", i, "$rt", sep=""),0)))))
+  
+}
+
+
+
+Value <- round(mexgauss(myrtdist$rt),0)
+Metric <- c("(ms)")
+
+
+
+Norm_m <- c("X", "X", "X")
+Norm_z <- c("X", "X", "X")
+
+if(file.exists("../../Data/Norms/normative_data.txt")){
+  
+  norms <- read.table("../../Data/Norms/normative_data.txt")
+  
+  z_tau <- (mexgauss(myrtdist$rt)[3] - mean(norms$tau)) / sd(norms$tau)
+  
+  Norm_m <- c("X", "X", round(mean(norms$tau),0))
+  Norm_z <- c("X", "X",round(z_tau,2))
+}
+
+mygaussian<- data.frame(Metric, Value, Norm_m, Norm_z)
+
+#ggplot2.histogram(all_dist, xName="rt", scale="density", binwidth = 10, fill="white", color="black", addDensityCurve=TRUE, densityFill='#FF6666', groupName="condition")
+
+#ggplot2.histogram(all_dist_z, xName="rt", scale="frequency", binwidth = 10, fill="white", color="black", addDensityCurve=TRUE, densityFill='#FF6666', groupName="condition")
+
+#ggplot2.histogram(all_dist_z, xName="rt", scale="density", binwidth = 10, fill="white", color="black", addDensityCurve=TRUE, densityFill='#FF6666')
+
+
+hist(myrtdist$rt, xlab="Reaction Time (ms)", main=NULL, breaks=20)
+kable(mygaussian,format="markdown", caption="Ex-Gaussian Parameters")
+
+```
+**Legend.** Ex-Gaussian parameters were calculated across all task conditions.
+Mu: mean reaction time (ms), corrected for lapses of attention.
+Sigma: standard deviation of reaction time (ms), corrected for lapses of attention.
+Tau: lapses of attention, or the influence of extreme slow responses on reaction time.
+
+___
+
+
+```{r construct data file, results = 'asis', echo = FALSE}
+
+mu <- unname(Value[1])
+sigma <- unname(Value[2])
+tau <- unname(Value[3])
+
+mu_odd <- unname(exg_odd[1])
+sigma_odd <- unname(exg_odd[2])
+tau_odd <- unname(exg_odd[3])
+
+mu_even <- unname(exg_even[1])
+sigma_even <- unname(exg_even[2])
+tau_even <- unname(exg_even[3])
+
+for (i in unique(mydata$block)){
+  
+  assign(paste("mu_", i, sep=""), unname(eval(parse(text=paste("exg_", i, "[1]", sep="")))))
+  assign(paste("sigma_", i, sep=""), unname(eval(parse(text=paste("exg_", i, "[2]", sep="")))))
+  assign(paste("tau_", i, sep=""), unname(eval(parse(text=paste("exg_", i, "[3]", sep="")))))
+  
+}
+
+
+block_data <-data.frame(mu_even, sigma_even, tau_even, mu_odd, sigma_odd, tau_odd)
+
+
+if (exists("mrt_neutral_1")){
+
+  block_data <- data.frame(block_data, mrt_neutral_1, sd_neutral_1, acc_neutral_1,  mu_1, sigma_1, tau_1)
+  
+}
+
+if (exists("mrt_neutral_2")){
+
+  block_data <- data.frame(block_data, mrt_neutral_2, sd_neutral_2, acc_neutral_2,  mu_2, sigma_2, tau_2)
+  
+}
+
+if (exists("mrt_neutral_3")){
+
+  block_data <- data.frame(block_data, mrt_neutral_3, sd_neutral_3, acc_neutral_3,  mu_3, sigma_3, tau_3)
+  
+}
+
+if (exists("mrt_neutral_4")){
+
+  block_data <- data.frame(block_data, mrt_neutral_4, sd_neutral_4, acc_neutral_4,  mu_4, sigma_4, tau_4)
+  
+}
+
+if (exists("mrt_neutral_5")){
+
+  block_data <- data.frame(block_data, mrt_neutral_5, sd_neutral_5, acc_neutral_5,  mu_5, sigma_5, tau_5)
+  
+}
+
+if (exists("mrt_neutral_6")){
+
+  block_data <- data.frame(block_data, mrt_neutral_6, sd_neutral_6, acc_neutral_6,  mu_6, sigma_6, tau_6)
+  
+}
+
+if (exists("count_simple")){
+
+block_data <- data.frame(block_data, count_simple, mrt_simple, sd_simple, acc_simple, mu_simple, sigma_simple, tau_simple)
+
+}
+
+
+# MAKE DATABASE
+ant_data <- data.frame(ant_data, test, count_neutral, mrt_neutral, sd_neutral, acc_neutral, count_fixation, mrt_fixation, acc_fixation, count_cue, mrt_cue, acc_cue, count_spatial, mrt_spatial, acc_spatial, count_congruent, mrt_congruent, acc_congruent, count_incongruent, mrt_incongruent, acc_incongruent, alerting_mrt, alerting_acc, orienting_mrt, orienting_acc, executive_mrt, executive_acc, sustained_mrt, sustained_acc, count_gaussian, mu, sigma, tau, block_data)
+
+#write.table(ant_data, paste("output/ant_data", subj, ".txt", sep=""), sep="\t")
+
+if (exists("all_ant_data") == TRUE){
+  rm(list=setdiff(ls(), c("subjects", "all_ant_data", "j", "subj", "ant_data", "date")))
+}
+
+if (exists("all_ant_data") == FALSE){
+rm(list=setdiff(ls(), c("subjects", "j", "subj", "ant_data", "date")))
+}
+
+```
