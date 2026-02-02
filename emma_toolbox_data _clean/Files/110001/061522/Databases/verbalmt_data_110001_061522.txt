@@ -1,2 +1,0 @@
-"subj" "test" "encoding_1" "encoding_2" "encoding_3" "encoding_4" "encoding_5" "encoding_sum" "retrieval" "recognition_correct" "recognition_fp" "recognition_fn"
-"110001" 2022-06-15 2 4 6 9 11 32 12 13 7 10
