@@ -1,0 +1,2 @@
+"subj" "test" "d_proc" "d_att_ctrl" "d_mem" "d_ver_wm" "d_vis_wm" "d_visuom" "mrt_neutral" "sd_neutral" "tau" "alerting_mrt" "orienting_mrt" "exec_mrt" "exec_acc" "vis_mem_enc" "ver_mem_enc" "vis_wm_enc" "vis_wm_ce" "ver_wm_enc" "ver_wm_ce" "visuom_random_d" "visuom_speed_d" "motor_response" "age"
+"110001" "2022-06-15" 2.11 0.28 -1.09 -0.49 -1.84 0.78 1.72 1.11 1.77 0.68 -0.31 0.06 0.11 -0.25 -1.75 -1.3 -0.71 0.24 -0.71 0.62 -0.35 0.71 13.3360711841205

@@ -1,0 +1,133 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(plyr)
+library(ggplot2)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r pupillometry}
+
+
+files <- list.files(pattern="pupil_timeseries_all")
+
+for (file in files){
+    
+    # if the merged dataset doesn't exist, create it
+    if (!exists("dataset")){
+        dataset <- read.table(file, header=TRUE, sep=" ")
+    }
+    
+    
+    # if the merged dataset does exist, append to it
+    if (exists("dataset")){
+        temp_dataset <-read.table(file, header=TRUE, sep=" ")
+        dataset<-rbind.fill(dataset, temp_dataset)
+        rm(temp_dataset)
+    }
+    
+}
+
+files <- files[1:length(files)]
+
+dataset=dataset[dataset$subject>110000 & dataset$subject < 1100000,]
+
+#print(unique(dataset$subject))
+
+group_pupil_all <- dataset[,2:3]
+group_pupil_all_m <- aggregate(group_pupil_all, by=list(group_pupil_all$time), FUN=mean, na.rm=TRUE)
+group_pupil_all_sd <- aggregate(group_pupil_all, by=list(group_pupil_all$time), FUN=sd, na.rm=TRUE)
+group_pupil_all_se <- group_pupil_all_sd$diameter_change / sqrt(length(unique(dataset$subject)))
+
+group_pupil_all_m <- data.frame(group_pupil_all_m[,c(2:3)], group_pupil_all_se)
+colnames(group_pupil_all_m) <- c("time", "diameter_change", "se")
+
+
+ggplot(data=group_pupil_all_m, aes(x=time, y=diameter_change)) +  
+  geom_line() + geom_linerange(aes(ymin=group_pupil_all_m$diameter_change - group_pupil_all_m$se, ymax=group_pupil_all_m$diameter_change + group_pupil_all_m$se, alpha=.05))+
+  ggtitle("Pupil timeline") +
+  xlab("time (ms)") +
+  ylab("Diameter change (mm)")
+
+
+rm(list=setdiff(ls(), c("group_pupil_all", "group_pupil_all_m")))
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+
+
+```{r pressure, echo=FALSE}
+
+files <- list.files(pattern="pupil_timeseries_con")
+
+for (file in files){
+    
+    # if the merged dataset doesn't exist, create it
+    if (!exists("dataset")){
+        dataset <- read.table(file, header=TRUE, sep=" ")
+    }
+    
+    
+    # if the merged dataset does exist, append to it
+    if (exists("dataset")){
+        temp_dataset <-read.table(file, header=TRUE, sep=" ")
+        dataset<-rbind.fill(dataset, temp_dataset)
+        rm(temp_dataset)
+    }
+    
+}
+
+files <- files[1:length(files)]
+
+
+dataset=dataset[dataset$subject>110000 & dataset$subject < 1100000,]
+
+#print(unique(dataset$subject))
+
+group_pupil_cue <- dataset[,2:4]
+group_pupil_cue_m <- aggregate(group_pupil_cue, by=list(group_pupil_cue$cue, group_pupil_cue$time), FUN=mean, na.rm=TRUE)
+group_pupil_cue_sd <- aggregate(group_pupil_cue, by=list(group_pupil_cue$cue, group_pupil_cue$time), FUN=sd, na.rm=TRUE)
+group_pupil_cue_se <- group_pupil_cue_sd$diameter_change / sqrt(length(unique(dataset$subject)))
+
+group_pupil_target <- dataset[,c(2,5,6)]
+group_pupil_target_m <- aggregate(group_pupil_target, by=list(group_pupil_target$target, group_pupil_target$time), FUN=mean, na.rm=TRUE)
+group_pupil_target_sd <- aggregate(group_pupil_target, by=list(group_pupil_target$target, group_pupil_target$time), FUN=sd, na.rm=TRUE)
+group_pupil_target_se <- group_pupil_target_sd$diameter_change / sqrt(length(unique(dataset$subject)))
+
+
+group_pupil_cue_m <- data.frame(group_pupil_cue_m[,c(1,3,5)], group_pupil_cue_se)
+colnames(group_pupil_cue_m) <- c("cue_condition", "time", "diameter_change", "se")
+
+group_pupil_target_m <- data.frame(group_pupil_target_m[,c(1,3,5)], group_pupil_target_se)
+colnames(group_pupil_target_m) <- c("target_condition", "time", "diameter_change", "se")
+
+ggplot(data=group_pupil_cue_m, aes(x=time, y=diameter_change, group=cue_condition)) +  
+  geom_line(aes(color=cue_condition, show.legend = NA)) + geom_linerange(aes(ymin=group_pupil_cue_m$diameter_change - group_pupil_cue_m$se, ymax=group_pupil_cue_m$diameter_change + group_pupil_cue_m$se, color=cue_condition, alpha=.05, show.legend = NA)) +
+  ggtitle("Pupil timeline") +
+  xlab("time (ms)") +
+  ylab("Diameter change (mm)")
+
+ggplot(data=group_pupil_target_m, aes(x=time, y=diameter_change, group=target_condition)) +  
+  geom_line(aes(color=target_condition, show.legend=NA)) + geom_linerange(aes(ymin=group_pupil_target_m$diameter_change - group_pupil_target_m$se, ymax=group_pupil_target_m$diameter_change + group_pupil_target_m$se, color=target_condition, alpha=.05)) +
+  ggtitle("Pupil timeline") +
+  xlab("time (ms)") +
+  ylab("Diameter change (mm)")
+
+rm(list=setdiff(ls(), c("group_pupil_all", "group_pupil_all_m", "group_pupil_cue", "group_pupil_cue_m","group_pupil_target", "group_pupil_target_m")))
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
