@@ -1,0 +1,579 @@
+---
+title: "Emma Toolbox for Neurocognitive Functioning"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+
+![](amc.png)
+Emma Neuroscience Group,
+Dr. Marsh Königs & Prof. dr. Jaap Oosterlaan
+
+
+
+## Report
+
+```{r setup_domains, include = FALSE}
+#subj <- "1"
+
+
+```
+
+
+```{r load packages, echo = FALSE, include = FALSE}
+
+if (!require(readr)) {
+    install.packages("readr", dependencies = TRUE)
+    require(readr)
+}
+
+
+if (!require(ggplot2)) {
+    install.packages("ggplot2", dependencies = TRUE)
+    require(ggplot2)
+}
+
+if (!require(lubridate)) {
+    install.packages("lubridate", dependencies = TRUE)
+    require(lubridate)
+}
+
+if (!require(gdtools)) {
+    install.packages("gdtools", dependencies = TRUE)
+    require(gdtools)
+}
+
+
+if (!require(kableExtra)) {
+    install.packages("kableExtra", dependencies = TRUE)
+    require(kableExtra)
+}
+
+if (!require(dplyr)) {
+    install.packages("dplyr", dependencies = TRUE)
+    require(dplyr)
+}
+
+if (!require(gridExtra)) {
+    install.packages("gridExtra", dependencies = TRUE)
+    require(gridExtra)
+}
+```
+
+
+
+```{r load data, echo=FALSE, include=FALSE}
+
+all_data <- read_csv(paste("../../Data/Raw/Attention/attention-subject-", subj,".csv",sep=""), col_types = cols())
+#all_data <- read_csv(paste("data/subject-",subj,".csv",sep=""), col_types = cols())
+
+ant_data <- data.frame(subj)
+
+```
+
+
+```{r characterisics, echo=FALSE, warning=FALSE}
+
+Personal = c()
+Details = c()
+
+if (exists("naam", all_data) == TRUE){
+  name <- (unique(all_data$naam))
+  Personal <- c(Personal, "Name")
+  Details <- c(Details, name)
+}
+
+if (exists("geboortedatum", all_data) == TRUE){
+  dob <- (unique(all_data$geboortedatum))
+  Personal <- c(Personal, "Date of Birth")
+  Details <- c(Details, dob)
+}
+
+if (exists("geslacht", all_data) == TRUE){
+  gender <- (unique(all_data$geslacht))
+  Personal <- c(Personal, "Gender")
+  Details <- c(Details, gender)
+  ant_data <- data.frame(ant_data, gender)
+}
+
+if (exists("geboorteland_vader", all_data) == TRUE){
+  geboorteland_vader <- (unique(all_data$geboorteland_vader))
+  Personal <- c(Personal, "Geboorteland vader")
+  Details <- c(Details, geboorteland_vader)
+  ant_data <- data.frame(ant_data, geboorteland_vader)
+}
+
+if (exists("geboorteland_moeder", all_data) == TRUE){
+  geboorteland_moeder <- (unique(all_data$geboorteland_moeder))
+  Personal <- c(Personal, "Geboorteland moeder")
+  Details <- c(Details, geboorteland_moeder)
+  ant_data <- data.frame(ant_data, geboorteland_moeder)
+}
+
+if (exists("opleiding", all_data) == TRUE){
+  opleiding <- (unique(all_data$opleiding))
+  Personal <- c(Personal, "Opleiding")
+  Details <- c(Details, opleiding)
+  ant_data <- data.frame(ant_data, opleiding)
+}
+
+if (exists("handig", all_data) == TRUE){
+  handig <- (unique(all_data$handig))
+  Personal <- c(Personal, "Dominante hand")
+  Details <- c(Details, handig)
+  ant_data <- data.frame(ant_data, handig)
+}
+
+if (exists("positie", all_data) == TRUE){
+  positie <- handig <- (unique(all_data$positie))
+  Personal <- c(Personal, "Position")
+  Details <- c(Details, positie)
+  ant_data <- data.frame(ant_data, positie)
+}
+
+if (exists("kleurenblind", all_data) == TRUE){
+  kleurenblind <- (unique(all_data$kleurenblind))
+  Personal <- c(Personal, "Kleurenblind")
+  Details <- c(Details, kleurenblind)
+  ant_data <- data.frame(ant_data, kleurenblind)
+}
+
+if (exists("bril_lenzen", all_data) == TRUE){
+  bril <- (unique(all_data$bril_lenzen))
+  Personal <- c(Personal, "Glasses")
+  Details <- c(Details, bril)
+  ant_data <- data.frame(ant_data, bril)
+}
+
+if (exists("zicht", all_data) == TRUE){
+  zichtproblemen <- (unique(all_data$zicht))
+  Personal <- c(Personal, "Vision problems")
+  Details <- c(Details, zichtproblemen)
+  ant_data <- data.frame(ant_data, zichtproblemen)
+}
+
+if (exists("slaap", all_data) == TRUE){
+  slaapproblemen <- (unique(all_data$slaap))
+  Personal <- c(Personal, "Sleeping problems")
+  Details <- c(Details, slaapproblemen)
+  ant_data <- data.frame(ant_data, slaapproblemen)
+}
+
+if (exists("wat_voor_dieet", all_data) == TRUE){
+  dieet <- (unique(all_data$wat_voor_dieet))
+  Personal <- c(Personal, "Diet")
+  Details <- c(Details, dieet)
+  ant_data <- data.frame(ant_data, dieet)
+}
+
+if (exists("middelen", all_data) == TRUE){
+  middelen <- (unique(all_data$middelen))
+  Personal <- c(Personal, "Substance use")
+  Details <- c(Details, middelen)
+  ant_data <- data.frame(ant_data, middelen)
+}
+
+if (exists("gehoor", all_data) == TRUE){
+  gehoorproblemen <- (unique(all_data$gehoor))
+  Personal <- c(Personal, "Hearing Problems")
+  Details <- c(Details, gehoorproblemen)
+  ant_data <- data.frame(ant_data, gehoorproblemen)
+}
+
+if (exists("hersenschudding", all_data) == TRUE){
+  hersenschudding <- unique(all_data$hersenschudding)
+  Personal <- c(Personal, "History of concussion")
+  Details <- c(Details, hersenschudding)
+  ant_data <- data.frame(ant_data, hersenschudding)
+}
+
+if (exists("wanneer_hersenschudding", all_data) == TRUE){
+  t_hersenschudding <- (unique(all_data$wanneer_hersenschudding))
+  Personal <- c(Personal, "Previous concussion")
+  Details <- c(Details, t_hersenschudding)
+  ant_data <- data.frame(ant_data, t_hersenschudding)
+}
+
+if (exists("aandoeningen", all_data) == TRUE){
+  aandoening <- (unique(all_data$aandoeningen))
+  Personal <- c(Personal, "Condition")
+  Details <- c(Details, aandoening)
+  ant_data <- data.frame(ant_data, aandoening)
+}
+
+if (exists("aandoening_anders", all_data) == TRUE){
+  aandoening_anders <- (unique(all_data$aandoening_anders))
+  Personal <- c(Personal, "Condition, else")
+  Details <- c(Details, aandoening_anders)
+  ant_data <- data.frame(ant_data, aandoening_anders)
+}
+
+if (exists("welke_medicijnen", all_data) == TRUE){
+  medicatie <- (unique(all_data$welke_medicijnen))
+  Personal <- c(Personal, "Medication")
+  Details <- c(Details, medicatie)
+  ant_data <- data.frame(ant_data, medicatie)
+}
+
+if (length(Personal) > 0 & length(Details) > 0){
+  mydetails <- data.frame(Personal,Details)
+  kable(mydetails, format="markdown", caption="Personal details", align="l")
+}
+
+```
+
+## Details of assessment
+
+```{r test details, echo = FALSE}
+
+Test <- c()
+Details <- c()
+
+
+if (exists("opensesame_version", all_data) == TRUE){
+  os_version <- unique(all_data$opensesame_version)
+  Test <- c(Test, "OS Version")
+  Details <- c(Details, os_version)
+}
+
+if (exists("experiment_file", all_data) == TRUE){
+  test_version <- unique(all_data$experiment_file)
+  Test <- c(Test, "Test Version")
+  Details <- c(Details, test_version)
+}
+
+if (exists("meting", all_data) == TRUE){
+  meting <- unique(all_data$meting)
+  Test <- c(Test, "Measurement Type")
+  Details <- c(Details, meting)
+  ant_data <- data.frame(ant_data, meting)
+}
+
+if (exists("datetime", all_data) == TRUE){
+  time <- unique(all_data$datetime)
+  Test <- c(Test, "Date and time")
+  Details <- c(Details, time[1])
+}
+
+if (exists("canvas_backend", all_data) == TRUE){
+  backend <- unique(all_data$canvas_backend)
+  Test <- c(Test, "Backend")
+  Details <- c(Details, backend)
+}
+
+date <- c(strsplit(time," "))
+date <- unlist(date)
+date <- date[1]
+test <- mdy(date)
+
+if ((exists("dob") == TRUE) & (exists("time") == TRUE)){
+  dob <- unique(all_data$geboortedatum)
+  dobi <- dmy(dob)
+  age <- as.numeric((test-dobi)/365)
+  }
+
+if (exists("age", mode="variable") == TRUE){
+  ant_data <- data.frame(ant_data, age)
+  Test <- c(Test, "Age of Subject")
+  Details <- c(Details, age)
+}
+
+
+mytestdetails <- data.frame(Test, Details)
+
+kable(mytestdetails, format="markdown", caption="Test details", align="l")
+
+
+
+```
+
+
+```{r symptom checklist, echo=FALSE}
+
+
+if (exists("hoofdpijn", all_data) == TRUE){
+  hoofdpijn <- unique(all_data$hoofdpijn)
+  druk_op_hoofd <- unique(all_data$druk_op_hoofd)
+  balans <- unique(all_data$balans)
+  nekpijn <- unique(all_data$nekpijn)
+  misselijkheid <- unique(all_data$misselijkheid)
+  braken <- unique(all_data$braken)
+  zichtproblemen <- unique(all_data$zichtproblemen)
+  gehoorproblemen <- unique(all_data$gehoorproblemen)
+  niet_goed_voelen <- unique(all_data$niet_goed_voelen)
+  wazig_voelen <- unique(all_data$wazig_voelen)
+  verward_voelen <- unique(all_data$verward_voelen)
+  gevoel_langzaam <- unique(all_data$gevoel_langzaam)
+  gevoel_mistig <- unique(all_data$gevoel_mistig)
+  slaperigheid <- unique(all_data$slaperigheid)
+  vermoeidheid <- unique(all_data$vermoeidheid)
+  emotioneel <- unique(all_data$emotioneel)
+  geirriteerd <- unique(all_data$geirriteerd)
+  concentratie <- unique(all_data$concentratie)
+  onthouden <- unique(all_data$onthouden)
+  droevigheid <- unique(all_data$nerveus_bang)
+  slaap <- unique(all_data$slaapproblemen)
+  meer_slapen <- unique(all_data$meer_slapen)
+  gevoeligheid_licht <- unique(all_data$gevoeligheid_licht)
+  gevoeligheid_geluid <- unique(all_data$gevoeligheid_geluid)
+
+symptom_score = hoofdpijn + druk_op_hoofd + balans + nekpijn + misselijkheid + braken + zichtproblemen + gehoorproblemen + niet_goed_voelen + wazig_voelen + verward_voelen + gevoel_langzaam + gevoel_mistig + slaperigheid + vermoeidheid + emotioneel + geirriteerd + concentratie + onthouden + droevigheid + slaap + meer_slapen + gevoeligheid_licht + gevoeligheid_geluid
+
+  symptoms <- matrix(c(hoofdpijn, druk_op_hoofd, balans, nekpijn, misselijkheid, braken, zichtproblemen, gehoorproblemen, niet_goed_voelen, wazig_voelen, verward_voelen, gevoel_langzaam, gevoel_mistig, slaperigheid, vermoeidheid, emotioneel, geirriteerd, concentratie, onthouden, droevigheid, slaap, meer_slapen, gevoeligheid_licht, gevoeligheid_geluid), ncol=24, nrow=1)
+
+  colnames(symptoms) <- c("hoofdpijn", "druk op hoofd", "balans", "nekpijn", "misselijk", "braken", "zicht", "gehoor", "niet goed voelen", "wazig", "verward", "langzaam", "mistig", "slaperig", "vermoeid", "emotioneel", "geirriteerd", "concentratie", "onthouden", "droevig", "slaap", "meer slaap", "lichtgevoeligheid", "geluidgevoeligheid")
+
+  symptoms <- symptoms[,order(symptoms)]
+  barplot(symptoms, horiz=T, las=1, xlab="Symptom Score (0-6)", cex.names=0.45, space=c(1,2))
+  print(paste ("Total Symptom Score: ", symptom_score, sep=""))
+}
+
+if (exists("hoofdpijn") == TRUE){
+  ant_data <- data.frame(ant_data, symptom_score, hoofdpijn, druk_op_hoofd, balans, nekpijn, misselijkheid, braken, zichtproblemen, gehoorproblemen, niet_goed_voelen, wazig_voelen, verward_voelen, gevoel_langzaam, gevoel_mistig, slaperigheid, vermoeidheid, emotioneel, geirriteerd, concentratie, onthouden, droevigheid, slaap, meer_slapen, gevoeligheid_licht, gevoeligheid_geluid)
+}
+
+```
+
+
+## Timelines
+
+```{r domains, echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+library(dplyr)
+
+vars <- c("mrt_neutral", "sd_neutral", "acc_neutral", "alerting_mrt", "orienting_mrt", "executive_mrt", "executive_acc", "sustained_mrt", "tau", "encoding_sum.x", "retrieval.x", "recognition_correct.x", "encoding_sum.y", "retrieval.y", "recognition_correct.y", "vooruit_corr.x", "achteruit_corr.x", "vooruit_corr.y", "achteruit_corr.y", "overall_fixed_m", "overall_random_m", "motor_response")
+
+dirs <- c("neg", "neg", "pos", "neg", "neg", "neg", "pos", "neg", "neg", "neg", "neg", "pos", "pos", "pos", "pos", "pos", "pos", "pos", "pos", "neg", "neg", "neg")
+
+des <- c("Processing speed", "Processing variability", "Processing accuracy", "Alerting attention", "Orienting attention", "Interference control speed", "Interference control accuracy", "Sustained attention", "Attention consistency", "Visual encoding", "Visual retrieval", "Visual recognition", "Verbal encoding", "Verbal retrieval", "Verbal recognition", "Visual short-term memory", "Visual working memory", "Verbal short-term memory", "Verbal working memory", "Static visuomotor integration", "Dynamic visuomotor integration", "Motor response inhibition")
+
+trrs <- c(.84, .4, NA, .48, .59, .71, .51, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA)
+
+scales <-c("Mean of RT (ms)", "SD of RT (ms)", "Accuracy (proportion)", "Change in RT (ms)", "Change in RT (ms)", "Change in RT (ms)", "Change in accuracy (proportion)", "Change in RT (ms)", "Tau (ms)", "Total displacement (distance from target)", "Total displacement (distance from target)", "Total correct", "Direct recall (correct)", "Delayed recall (correct)", "Recognition (correct)", "Correct", "Correct", "Correct", "Correct", "Mean Deviance (pixels)", "Mean Deviance (pixels)", "Latency (ms)") 
+
+summary <- data.frame(vars, dirs, des, trrs, scales)
+
+
+#Prepare norms for KNVB SGH
+#ET_DATABASE <- read.table("../../Data/Databases/ET_DATABASE.txt", sep=" ", header = TRUE)
+
+# create groups for KNVB
+#CTRL <- ET_DATABASE[ET_DATABASE$subj<210000 & ET_DATABASE$subj>200000, ]
+#CTRL <- select(CTRL, vars)
+
+#Prepare norms for LTH
+ET_DATABASE <- read.table(paste0("../../Data/Norms/", pop, "/ET_DATABASE.txt"), sep=" ", header = TRUE)
+
+# create groups for LTH
+CTRL <- ET_DATABASE[ET_DATABASE$subj>110000 & ET_DATABASE$subj<210000, ]
+CTRL <- select(CTRL, vars)
+
+for (a in 1:ncol(CTRL)){
+  CTRL[,a][is.infinite(CTRL[,a])] <- NA 
+}
+
+# import data from local database
+ET_DATABASE <- read.table("../../Data/Databases/ET_DATABASE.txt", sep=" ", header = TRUE)
+
+#EXP <- ET_DATABASE[ET_DATABASE$subj<200000 & ET_DATABASE$subj>110000, ]
+#EXP <- select(EXP, vars)
+
+#CTRL_pca <- et_select_imp[et_select_imp$subj<210000 & et_select_imp$subj>200000, ]
+#EXP_pca <- et_select_imp[et_select_imp$subj<200000 & et_select_imp$subj>110000, ]
+
+#CTRL_M <- CTRL[1,]
+#CTRL_M[1,] <- colMeans(CTRL, na.rm = TRUE)
+#CTRL_M <- CTRL_M[1,]
+
+#EXP_M <- colMeans(EXP)
+
+#CTRL_pca_M <- colMeans(CTRL)
+#EXP_pca_M <- colMeans(EXP)
+
+#write to Norms folder
+#write.csv(CTRL_M, "../../Data/Norms/CTRL.csv")
+#write.csv(EXP_M, "../../Data/Norms/EXP.csv")
+#write.csv(CTRL_pca_M, "../../Data/Norms/CTRL_PCA.csv")
+#write.csv(EXP_pca_M, "../../Data/Norms/EXP_PCA.csv")
+
+#CTRL_M <- read.csv2("../../Data/Norms/CTRL.csv", sep=",")
+
+# select baseline number
+subj_base <- substr(subj, start=1, stop=6)
+ET_subj <- ET_DATABASE[grep(subj_base, ET_DATABASE$subj),]
+
+
+if (nrow(ET_subj)>1){
+
+#RCI###############################################################################
+rci_calc <- function(data, var, trr, t1, t2){
+
+  # get sd from control group
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)  
+
+  #calc rci
+sem <- std * (sqrt(1-trr))
+sed <- sqrt(2*(sem*sem))
+diff <- eval(parse(text = paste0("ET_subj$", var)))[i] - eval(parse(text = paste0("ET_subj$", var)))[j] 
+sd_change <- diff/std
+rci <- diff/sed
+
+  #calc p-value
+p_rci <- round(pnorm(abs(rci), lower.tail = FALSE),3)*2
+
+rci_results <- list("sd_change" = sd_change, "RCI" = rci, "Pval" = c(p_rci), "diff" = diff)
+return(rci_results)
+}
+
+
+s=1
+for (var in vars){
+
+rci_table <- data.frame(matrix(NA, (nrow=nrow(ET_subj)*(nrow(ET_subj)-1)/2), ncol=4))
+colnames(rci_table) <- c("Timepoint", "SD change", "RCI-index", "P-Value")
+
+z=1
+k=1:nrow(ET_subj)
+for (i in k){
+  for (j in k){
+    
+    if (j>i){
+      rci_results <- rci_calc(ET_subj, var, trrs[s], i, j)
+      
+      p1 <- ""
+      p1[sqrt(rci_results$sd_change*rci_results$sd_change)>1.5] <- "*"
+      
+      p2 <- ""
+      p2[rci_results$Pval<.05] <- "*"
+      p2[rci_results$Pval<.01] <- "**"
+      p2[rci_results$Pval<.001] <- "***"
+      
+      #write to table
+      rci_table[z,1] <- paste0("T", i, " vs ", "T", j)
+      rci_table[z,2] <- paste0(round(rci_results$sd_change,2),p1)
+      rci_table[z,3] <- paste0(round(rci_results$RCI,2),p2)
+      rci_table[z,4] <- round(rci_results$Pval,3)
+
+      z=z+1
+     }
+    }
+}
+
+assign(paste("rci_table_", var, sep = ""), rci_table)
+
+
+
+# plots
+
+ET_subj$test <- as.Date(ET_subj$test)
+
+#higher is poorer
+if (dirs[s]=="neg"){
+
+ann <- "Lower values reflect better performance"
+
+m <- mean(eval(parse(text = paste0("CTRL$", var))),na.rm=TRUE)
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+
+cut_1 <- -Inf
+cut_2 <- m+std
+cut_3 <- m + 2*std
+cut_4 <- Inf
+}
+
+# higher is better
+if (dirs[s]=="pos"){
+ann <- "Higher values reflect better performance"
+m <- mean(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+
+cut_1 <- Inf
+cut_2 <- m-std
+cut_3 <- m-2*std
+cut_4 <- -Inf
+
+}
+
+m <- mean(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+t_diff <- as.numeric(ET_subj$test[length(ET_subj$test)]-ET_subj$test[1])
+
+t_unit <- "month"
+t_set <- "%b"
+t_adj <- 7
+
+
+if (t_diff < 30){
+  
+  t_unit <- "week"
+  t_set <- "%d"
+  t_adj <- 3
+}
+
+if (t_diff < 14){
+  
+  t_unit <- "day"
+  t_set <- "%a"
+  t_adj <- 1
+  
+}
+
+  
+plot <- ggplot(data = ET_subj, aes(x=test, y=eval(parse(text = var)))) + 
+  
+  geom_point(aes(color = factor(test)), size=3) + 
+  
+  geom_smooth(method='loess') + 
+  
+  scale_x_date(date_breaks = t_unit, date_labels = c(t_set)) + 
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = cut_2, ymax = cut_1, alpha = 0.05, fill="green") + 
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = cut_2, ymax = cut_3, alpha = 0.05, fill="yellow") + 
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = cut_4, ymax = cut_3, alpha = 0.05, fill="red") + 
+  
+  ggtitle(paste0(des[s])) + theme(plot.title = element_text(hjust = 0.5)) +
+  
+  labs(
+    x = paste0("Time (", t_unit, "s)"),
+    y = scales[s],
+    color = "Test date",
+    caption = ann) 
+
+assign(paste("plot_", var, sep = ""), plot)
+assign(paste("plot_", var, sep = ""), plot)
+assign(paste("plot_", var, sep = ""), plot)
+
+suppressWarnings(print(plot))
+print(kable(rci_table, format="markdown", caption="* P<.05, ** P<.01, *** P<.001", align="l"))
+
+Legend <- " "
+Values <- "* P<.05, ** P<.01, *** P<.001"
+Leg <- data.frame(Legend, Values)
+
+print(kable(Leg, format="markdown", align="l", caption="* P<.05, ** P<.01, *** P<.001"))
+
+
+
+
+s=s+1
+
+}
+
+} else {
+  
+  print("No repeated measures found for this subject")
+  
+}
+  
+```
+
+
+
+
+
+
+
+
