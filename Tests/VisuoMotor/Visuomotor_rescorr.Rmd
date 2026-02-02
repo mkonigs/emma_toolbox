@@ -1,0 +1,292 @@
+---
+title: "Clinical report"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+
+```{r load packages, include= FALSE}
+
+if (!require(plyr)) {
+    install.packages("plyr", dependencies = TRUE)
+    require(plyr)
+}
+
+if (!require(readr)) {
+    install.packages("readr", dependencies = TRUE)
+    require(readr)
+}
+
+if (!require(cowplot)) {
+    install.packages("cowplot", dependencies = TRUE)
+    require(cowplot)
+}
+
+if (!require(png)) {
+    install.packages("png", dependencies = TRUE)
+    require(png)
+}
+
+
+if (!require(knitr)) {
+    install.packages("knitr", dependencies = TRUE)
+    require(knitr)
+}
+
+if (!require(retimes)) {
+    install.packages("retimes" , dependencies = TRUE)
+    require(retimes)
+}
+
+```
+
+
+
+```{r load data, echo=FALSE}
+
+means <- data.frame(subj)
+for (condition in c("fixed", "random")){
+  for (speed in c(2, 4, 6, 8)){
+
+    subj_corr <- as.numeric(as.character(subj))
+    
+    if(file.exists(paste0("../../Data/Raw/VisuoMotor/VisuoMotor_v1.0.osexp_subj",subj_corr,"_",condition,"_step_",speed,".txt",sep=""))){
+      mydata <- read.delim(paste0("../../Data/Raw/VisuoMotor/VisuoMotor_v1.0.osexp_subj",subj_corr,"_",condition,"_step_",speed,".txt",sep=""), header=TRUE, sep=" ", dec=".")
+}
+
+    if(file.exists(paste0("../../Data/Raw/VisuoMotor/Rups_v1.0.osexp_subj",subj_corr,"_",condition,"_step_",speed,".txt",sep=""))){
+      mydata <- read.delim(paste0("../../Data/Raw/VisuoMotor/Rups_v1.0.osexp_subj",subj_corr,"_",condition,"_step_",speed,".txt",sep=""), header=TRUE, sep=" ", dec=".")
+}
+
+    write.table(mydata, file = paste0("../../Data/Raw/VisuoMotor/VisuoMotor_v1.0.osexp_subj",subj,"_",condition,"_step_",speed,"_",emmadate,".txt",sep=""), sep=" ", dec=".")
+    
+  mydata <- mydata[1:2000,]
+  
+  # select only odd datapoints
+  mydata <- mydata %>% filter(row_number() %% 2 == 1) ## Select odd rows
+  mydata$trial_nr <- 1:nrow(mydata)
+  index <- rep(speed,nrow(mydata))
+
+  mydata <- data.frame(index,mydata)
+  mydata$deviation_pix <- as.numeric(mydata$deviation_pix)
+  mydata <- na.omit(mydata)
+  assign(paste("alldata", condition, speed, sep="_"), data.frame(mydata))
+  assign(paste("mean_dev", condition, speed, sep="_"), mean(mydata$deviation_pix))
+  assign(paste("sd_dev", condition, speed, sep="_"), sd(mydata$deviation_pix))
+  assign(paste("sum_change_dir", condition, speed, sep="_"),length(mydata$dir_change[mydata$dir_change==2]))
+  } 
+}
+
+```
+![Dr. Marsh Königs, m.konigs@amc.nl]
+
+___
+
+##Visuomotor Tracking Test
+```{r Details, echo=FALSE}
+
+resolution = round(1000/((mydata$time[100]-mydata$time[1])/100),0)
+
+
+Test <- c("Subject", "Resolution (Hz)")
+Details <- c(subj, resolution)
+
+mytestdetails <- data.frame(Test, Details)
+kable(mytestdetails, format="markdown", caption="Test details", align="l")
+
+
+```
+
+___
+
+
+###Overall Performance
+```{r Timeline, include=FALSE, echo=FALSE}
+
+alldata_fixed <- rbind(alldata_fixed_2,alldata_fixed_4,alldata_fixed_6,alldata_fixed_8)
+alldata_random <- rbind(alldata_random_2,alldata_random_4,alldata_random_6,alldata_random_8)
+
+fixed_m <- c(mean_dev_fixed_2,mean_dev_fixed_4,mean_dev_fixed_6,mean_dev_fixed_8)
+random_m <- c(mean_dev_random_2,mean_dev_random_4,mean_dev_random_6,mean_dev_random_8)
+
+fixed_sd <- c(sd_dev_fixed_2,sd_dev_fixed_4,sd_dev_fixed_6,sd_dev_fixed_8)
+random_sd <- c(sd_dev_random_2,sd_dev_random_4,sd_dev_random_6,sd_dev_random_8)
+
+fixed_n <- c(sum_change_dir_fixed_2,sum_change_dir_fixed_4,sum_change_dir_fixed_6,sum_change_dir_fixed_8)
+random_n <- c(sum_change_dir_random_2,sum_change_dir_random_4,sum_change_dir_random_6,sum_change_dir_random_8)
+
+overall_fixed_m=round(mean(alldata_fixed$deviation_pix,0))
+overall_fixed_sd=round(sd(alldata_fixed$deviation_pix,0))
+overall_fixed_n=length(alldata_fixed$dir_change[alldata_fixed$dir_change==2])
+
+overall_random_m=round(mean(alldata_random$deviation_pix,0))
+overall_random_sd=round(sd(alldata_random$deviation_pix,0))
+overall_random_n=length(alldata_random$dir_change[alldata_random$dir_change==2])
+
+Metric <- c("Mean Deviation (Pixels)", "SD of Deviation (Pixels)", "Direction Changes (#)")
+Fixed<- c(overall_fixed_m, overall_fixed_sd, overall_fixed_n)
+Random<- c(overall_random_m, overall_random_sd, overall_random_n)
+
+myoverall <- data.frame(Metric, Fixed, Random)
+
+kable(myoverall,format="markdown", caption="Overall Performance")
+
+```
+
+
+### Performance in Fixed Condition
+```{r calculate fixed condition, echo=FALSE}
+
+
+Fixed <- c(fixed_m, fixed_sd, fixed_n)
+Random <- c(random_m, random_sd, random_n)
+
+fixed_5=c(round(mean_dev_fixed_2,0), round(sd_dev_fixed_2,0), round(sum_change_dir_fixed_2,0))
+fixed_15=c(round(mean_dev_fixed_4,0), round(sd_dev_fixed_4,0), round(sum_change_dir_fixed_4,0))
+fixed_25=c(round(mean_dev_fixed_6,0), round(sd_dev_fixed_6,0), round(sum_change_dir_fixed_6,0))
+fixed_35=c(round(mean_dev_fixed_8,0), round(sd_dev_fixed_8,0), round(sum_change_dir_fixed_8,0))
+
+myfixed <- data.frame(Metric, fixed_5, fixed_15, fixed_25, fixed_35)
+names(myfixed)[2]<-paste("Speed 2")
+names(myfixed)[3]<-paste("Speed 4")
+names(myfixed)[4]<-paste("Speed 6")
+names(myfixed)[5]<-paste("Speed 8")
+
+kable(myfixed,format="markdown")
+```
+
+### Performance in Random Condition
+```{r random condition, echo=FALSE}
+
+random_2=c(round(mean_dev_random_2,0), round(sd_dev_random_2,0), round(sum_change_dir_random_2,0))
+random_4=c(round(mean_dev_random_4,0), round(sd_dev_random_4,0), round(sum_change_dir_random_4,0))
+random_6=c(round(mean_dev_random_6,0), round(sd_dev_random_6,0), round(sum_change_dir_random_6,0))
+random_8=c(round(mean_dev_random_8,0), round(sd_dev_random_8,0), round(sum_change_dir_random_8,0))
+
+myrandom <- data.frame(Metric, random_2, random_4, random_6, random_8)
+names(myrandom)[2]<-paste("Speed 2")
+names(myrandom)[3]<-paste("Speed 4")
+names(myrandom)[4]<-paste("Speed 6")
+names(myrandom)[5]<-paste("Speed 8")
+
+kable(myrandom,format="markdown")
+```
+
+```{r calculate visuomotor tracking performance, echo=FALSE}
+
+Speed <- c(2,4,6,8)
+ylim <- c(0, max(random_8))
+
+plot(Speed, random_m,
+xlab="Speed", ylab="Deviation (pixels)", type="b", pch=15, ylim=ylim, main="Visual Summary of Performance")
+lines(Speed, fixed_m, type="b", pch=19)
+
+legend("topleft", Legend, c("fixed", "random"),pch=c(19,15))
+
+```
+
+**Legend.** Visuomotor tracking performance in the fixed and random conditions as a function of speed.
+
+___
+
+
+###Timeline of response inhibition
+```{r calculate motor response inhibition, echo=FALSE}
+
+alldata_random$dir_change <- as.integer(alldata_random$dir_change)
+
+if(max(alldata_random$dir_change == 3)){
+  
+alldata_random$dir_change <- alldata_random$dir_change-1
+  
+}
+  
+
+k=40
+Measurements <- c(1:(k+1))
+samples <- data.frame(Measurements)
+times <- data.frame(Measurements)
+sampledist <- c()
+
+for (i in 1:(nrow(alldata_random)-k)){
+  if (alldata_random[i,"dir_change"]==2){
+    j=i+k
+    sample <- alldata_random[i:j,"deviation_pix"]
+    changes <- alldata_random[i:j,"dir_change"]
+    time <- as.numeric(as.character(alldata_random[i:j,"time"]))
+    index <- alldata_random[i:j,"index"]
+    for (l in (k+1):1){
+      sample[l]=sample[l]-sample[1]
+      time[l]=time[l]-time[1]
+    }
+    
+    if (sum(changes) == 2 & length(unique(index)) == 1 ){
+    samples <- data.frame(samples, sample)     
+    times <- data.frame(times, time)
+    
+    for (n in 1:length(sample)){
+      if (sample[n] > 0){
+      sampledist <- c(sampledist,rep(time[n],sample[n]))
+        }
+      }
+    }
+  }
+}
+samples <- samples[,2:ncol(samples)]
+times <- times[,2:ncol(times)]
+
+mean_samples <- rowMeans(samples, na.rm=FALSE)
+mean_times <- rowMeans(times,na.rm=FALSE)
+
+
+plot(mean_times, mean_samples,
+xlab="Time", ylab="Relative Deviation (pixels)", type="p", pch=19, main="Sparse Timeline of Motor Response", xlim=c(0,800))
+
+```
+
+**Legend.** Timeline of deviation from target directly after a direction change in the random condition (across speed conditions). Deviation in pixels is relative to the cursor location at the first timepoint. This sparse timeline is constructed using a recording resolution of ~16 Hz. The peak deviation relates to the motor response delay.
+
+___
+
+
+```{r fit response dist and find peak, results = 'asis', echo = FALSE}
+
+plot(density(sampledist, na.rm=TRUE),xlab="Motor Response Latency (ms)",main="Ex-Gaussian Model of Motor Response",xlim=c(0,800))
+motor_response = round(kernestim(sampledist),0)
+segments(motor_response,0,motor_response,1,col="red")
+```
+
+**Legend.** Estimated timeline of deviation from target, modeled from the sparse data collection using the Ex-gaussian model that mimics the shape of the response. The estimated timeline is only for visualization purposes, not for calculation. Due to the involvement of a randomization process during timeline estimation, its shape can vary slightly and the peak can show a slight mismatch with the estimated motor response delay. The estimated motor response delay is calculated on the actual response time distribution, is not dependent on randomization and therefore always produces the same results on the same dataset.
+
+```{r print motor response delay, results = 'asis', echo = FALSE}
+print(paste("Estimated Motor Response Delay (ms): ",motor_response,sep=""))
+
+```
+
+```{r construct data file, results = 'asis', echo = FALSE}
+
+if (!require(lubridate)) {
+    install.packages("lubridate", dependencies = TRUE)
+    require(lubridate)
+}
+
+all_data <- read_csv(paste("../../Data/Raw/VisuoMotor/visuomotor-subject-",subj,".csv",sep=""), col_types = cols())
+
+time <- unique(all_data$datetime)
+date <- c(strsplit(time," "))
+date <- unlist(date)
+date <- date[1]
+test <- mdy(date)
+
+visuomotor_data <- data.frame(subj, test, resolution, overall_fixed_m, overall_fixed_sd, overall_fixed_n, overall_random_m, overall_random_sd, overall_random_n, mean_dev_fixed_2, mean_dev_fixed_4,mean_dev_fixed_6, mean_dev_fixed_8, sd_dev_fixed_2, sd_dev_fixed_4, sd_dev_fixed_6, sd_dev_fixed_8, sum_change_dir_random_2, sum_change_dir_random_4, sum_change_dir_random_6, sum_change_dir_random_8, mean_dev_random_2, mean_dev_random_4, mean_dev_random_6, mean_dev_random_8, sd_dev_random_2, sd_dev_random_4, sd_dev_random_6, sd_dev_random_8, sum_change_dir_random_2, sum_change_dir_random_4, sum_change_dir_random_6, sum_change_dir_random_8, motor_response)
+
+#write.table(visuomotor_data, paste("output/visuomotor_data", subj, ".txt", sep=""), sep="\t")
+```
+0
