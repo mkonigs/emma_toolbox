@@ -110,7 +110,7 @@ ant_data <- data.frame(subj)
 
 
 ```
-![Dr. Marsh K??nigs, m.konigs@amc.nl]
+![Dr. Marsh K??nigs, m.konigs@amc.nl](amc.png)
 
 ___
 
