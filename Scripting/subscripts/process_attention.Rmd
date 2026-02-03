@@ -110,7 +110,7 @@ ant_data <- data.frame(subj)
 
 
 ```
-![Dr. Marsh K??nigs, m.konigs@amc.nl](amc.png)
+![Dr. Marsh K??nigs, m.konigs@amc.nl]
 
 ___
 
@@ -1007,3 +1007,4 @@ rm(list=setdiff(ls(), c("subjects", "j", "subj", "ant_data", "date")))
 }
 
 ```
+
