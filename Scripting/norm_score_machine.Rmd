@@ -1,0 +1,116 @@
+---
+title: "Exploring the Neurocognome"
+output:
+  html_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+norm_score_machine <- function(data, norm, subj_var, corr_vars) {
+
+# mark the origin of the datasets
+data$group_ <- rep("exp", nrow(data))
+norm$group_ <- rep("con", nrow(norm))
+
+# combine the datasets
+all <- rbind(data, norm)
+
+demo <- select(all, c(subj_var, corr_vars, "group", "group_"))
+
+for (i in corr_vars){
+  
+  if(length(unique(all[,colnames(all)==i])) == 2){
+    
+    all[, colnames(all)==i] <- as.factor(all[, colnames(all)==i])
+    
+  }
+}
+
+
+######
+
+
+z=1
+
+for (subj in eval(parse(text=paste0("data$", subj_var)))){
+
+  print(subj)
+
+  # extract patient data together with norm data
+all_subj <- rbind(all[(all$subj == subj),], norm[(norm$subj != subj),])
+
+#### INSERT NORM REGRESSION HERE ####
+
+# perform norm regression for these vars
+vars <- colnames(all_subj[,!-c(colnames(all_subj) %in% colnames(demo))])
+
+
+# loop trough vars
+for (i in vars){
+
+  # make model  
+model <- lm(as.formula(paste0(i, "~", paste0(corr_vars, collapse=" + "))), data=all_subj)
+
+#extract residuals
+all_subj[,which(colnames(all_subj)==i)] <- scale(residuals(model), center=TRUE, scale=TRUE)
+
+#if(z==1){
+#  print("RESIDUALS CHECK FOR NORMALITY IN NORM REGRESSION")
+#  print(hist(unlist(all_subj[colnames(all_subj)==i]), main=i, xlab = "Residuals after norm regression"))
+#  
+#}
+}
+
+
+
+age_standardized <- "yes"
+
+
+######
+
+
+# filter only the data for our subject
+et_domains <- all_subj[which(all_subj$subj==subj),][1,]##### CHANGE 1 into 2 or 3 depending on number of baselinetests ####
+et_domains_all <- all_subj[grep(subj,all_subj$subj),]
+
+if (!exists("et_domains_database")){
+  
+  et_domains_database <- et_domains
+
+  }else{
+  
+  et_domains_database <- rbind(et_domains_database, et_domains)
+  
+}
+  
+  print(paste0("norm regression finished for: ", subj))
+  rm(all_subj)
+
+  z=z+1
+}
+
+
+print(paste0("#########################"))
+print(paste0("Norm scores asjusted for:"))
+print(paste0("#########################"))
+for (p in corr_vars){
+  
+print(paste0(p, ": range in the control group between ", min(norm[,which(colnames(norm)==p)]), " and ", max(norm[,which(colnames(norm)==p)])))
+print(paste0(p, ": range in the data group between ", min(data[,which(colnames(data)==p)]), " and ", max(data[,which(colnames(data)==p)])))
+
+#et_domains_database[, which(colnames(et_domains_database)==p)] <- data[, which(colnames(data)==p)]
+
+}
+
+
+
+return(et_domains_database)
+}
+
+
+```
+
+
