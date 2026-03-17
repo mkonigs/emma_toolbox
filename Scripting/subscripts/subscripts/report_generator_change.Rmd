@@ -1,0 +1,301 @@
+---
+title: "Emma Toolbox for Neurocognitive Functioning"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+
+![](amc.png)
+Emma Neuroscience Group,
+Dr. Marsh Königs & Prof. dr. Jaap Oosterlaan
+
+
+
+### Report
+
+```{r setup_domains_, include = FALSE}
+
+# to fix the source problem when installing packages
+options(repos=list(CRAN="http://cran.rstudio.com/"))
+
+#devtools::install_github("lionel-/ggstance", upgrade = F)
+
+library(ggstance)
+```
+
+
+```{r load_packages, echo = FALSE, include = FALSE}
+
+
+# ipak function: install and load multiple R packages.
+# check to see if packages are installed. Install them if they are not, then load them into the R session.
+
+ipak <- function(pkg){
+    new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+    if (length(new.pkg)) 
+        install.packages(new.pkg, dependencies = TRUE)
+    sapply(pkg, require, character.only = TRUE)
+}
+
+# istall packages
+pkg <- c("mice", "reshape2", "readr", "psych", "ggplot2", "lubridate", "kableExtra", "dplyr")
+ipak(pkg)
+
+```
+
+
+
+```{r load_data, echo=FALSE, include=FALSE}
+
+all_data <- read.csv2(paste("../../../../emma_toolbox_data/Raw/Attention/attention-subject-", subj,".csv",sep=""))
+
+ant_data <- data.frame(subj)
+
+```
+
+
+## Details of assessment
+
+```{r test_details, echo = FALSE}
+
+Test <- c()
+Details <- c()
+
+
+if (exists("opensesame_version", all_data) == TRUE){
+  os_version <- unique(all_data$opensesame_version)
+  Test <- c(Test, "OS Version")
+  Details <- c(Details, os_version)
+}
+
+if (exists("experiment_file", all_data) == TRUE){
+  test_version <- unique(all_data$experiment_file)
+  Test <- c(Test, "Test Version")
+  Details <- c(Details, test_version)
+}
+
+if (exists("meting", all_data) == TRUE){
+  meting <- unique(all_data$meting)
+  Test <- c(Test, "Measurement Type")
+  Details <- c(Details, meting)
+  ant_data <- data.frame(ant_data, meting)
+}
+
+if (exists("datetime", all_data) == TRUE){
+  time <- unique(all_data$datetime)
+  Test <- c(Test, "Date and time")
+  Details <- c(Details, time[1])
+}
+
+if (exists("canvas_backend", all_data) == TRUE){
+  backend <- unique(all_data$canvas_backend)
+  Test <- c(Test, "Backend")
+  Details <- c(Details, backend)
+}
+
+date <- c(strsplit(time," "))
+date <- unlist(date)
+date <- date[1]
+test <- mdy(date)
+
+if ((exists("dob") == TRUE) & (exists("time") == TRUE)){
+  dob <- unique(all_data$geboortedatum)
+  dobi <- dmy(dob)
+  age <- as.numeric((test-dobi)/365)
+  }
+
+if (exists("age", mode="variable") == TRUE){
+  ant_data <- data.frame(ant_data, age)
+  Test <- c(Test, "Age of Subject")
+  Details <- c(Details, age)
+}
+
+
+mytestdetails <- data.frame(Test, Details)
+
+kable(mytestdetails, format="markdown", caption="Test details", align="l")
+
+
+```
+
+
+## Timelines
+
+```{r domains, echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+
+
+if (nrow(ET_subj)>1){
+
+#RCI###############################################################################
+rci_calc <- function(data, var, trr, t1, t2){
+
+  # get sd from control group
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)  
+
+  #calc rci
+sem <- std * (sqrt(1-trr))
+sed <- sqrt(2*(sem*sem))
+diff <- eval(parse(text = paste0("ET_subj$", var)))[i] - eval(parse(text = paste0("ET_subj$", var)))[j] 
+sd_change <- diff/std
+rci <- diff/sed
+
+  #calc p-value
+p_rci <- round(pnorm(abs(rci), lower.tail = FALSE),3)*2
+
+rci_results <- list("sd_change" = sd_change, "RCI" = rci, "Pval" = c(p_rci), "diff" = diff)
+return(rci_results)
+}
+
+
+s=1
+for (var in vars){
+
+rci_table <- data.frame(matrix(NA, (nrow=nrow(ET_subj)*(nrow(ET_subj)-1)/2), ncol=4))
+colnames(rci_table) <- c("Timepoint", "SD change", "RCI-index", "P-Value")
+
+z=1
+k=1:nrow(ET_subj)
+for (i in k){
+  for (j in k){
+    
+    if (j>i){
+      rci_results <- rci_calc(ET_subj, var, trrs[s], i, j)
+      
+      p1 <- ""
+      p1[sqrt(rci_results$sd_change*rci_results$sd_change)>1.5] <- "*"
+      
+      p2 <- ""
+      p2[rci_results$Pval<.05] <- "*"
+      p2[rci_results$Pval<.01] <- "**"
+      p2[rci_results$Pval<.001] <- "***"
+      
+      #write to table
+      rci_table[z,1] <- paste0("T", i, " vs ", "T", j)
+      rci_table[z,2] <- paste0(round(rci_results$sd_change,2),p1)
+      rci_table[z,3] <- paste0(round(rci_results$RCI,2),p2)
+      rci_table[z,4] <- round(rci_results$Pval,3)
+
+      z=z+1
+     }
+    }
+}
+
+assign(paste("rci_table_", var, sep = ""), rci_table)
+
+
+
+# plots
+
+ET_subj$test <- as.Date(ET_subj$test)
+
+#higher is poorer
+if (dirs[s]=="neg"){
+
+ann <- "Lower values reflect better performance"
+
+m <- mean(eval(parse(text = paste0("CTRL$", var))),na.rm=TRUE)
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+
+cut_1 <- -Inf
+cut_2 <- m+std
+cut_3 <- m + 2*std
+cut_4 <- Inf
+}
+
+# higher is better
+if (dirs[s]=="pos"){
+ann <- "Higher values reflect better performance"
+m <- mean(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+
+cut_1 <- Inf
+cut_2 <- m-std
+cut_3 <- m-2*std
+cut_4 <- -Inf
+
+}
+
+m <- mean(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)
+t_diff <- as.numeric(ET_subj$test[length(ET_subj$test)]-ET_subj$test[1])
+
+t_unit <- "month"
+t_set <- "%b"
+t_adj <- 7
+
+
+if (t_diff < 30){
+  
+  t_unit <- "week"
+  t_set <- "%d"
+  t_adj <- 3
+}
+
+if (t_diff < 14){
+  
+  t_unit <- "day"
+  t_set <- "%a"
+  t_adj <- 1
+  
+}
+
+  
+plot <- ggplot(data = ET_subj, aes(x=test, y=eval(parse(text = var)))) + 
+  
+  geom_point(aes(color = factor(test)), size=3) + 
+  
+  geom_smooth(method='loess') + 
+  
+  scale_x_date(date_breaks = t_unit, date_labels = c(t_set)) + 
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = cut_2, ymax = cut_1, alpha = 0.05, fill="green") + 
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = cut_2, ymax = cut_3, alpha = 0.05, fill="yellow") + 
+  
+  geom_rect(aes(xmin = test[1]-t_adj, xmax = test[length(test)]+t_adj), ymin = cut_4, ymax = cut_3, alpha = 0.05, fill="red") + 
+  
+  ggtitle(paste0(des[s])) + theme(plot.title = element_text(hjust = 0.5)) +
+  
+  labs(
+    x = paste0("Time (", t_unit, "s)"),
+    y = scales[s],
+    color = "Test date",
+    caption = ann) 
+
+assign(paste("plot_", var, sep = ""), plot)
+assign(paste("plot_", var, sep = ""), plot)
+assign(paste("plot_", var, sep = ""), plot)
+
+suppressWarnings(print(plot))
+print(kable(rci_table, format="markdown", caption="* P<.05, ** P<.01, *** P<.001", align="l"))
+
+Legend <- " "
+Values <- "* P<.05, ** P<.01, *** P<.001"
+Leg <- data.frame(Legend, Values)
+
+print(kable(Leg, format="markdown", align="l", caption="* P<.05, ** P<.01, *** P<.001"))
+
+
+
+
+s=s+1
+
+}
+
+} else {
+  
+  print("No repeated measures found for this subject")
+  
+}
+  
+```
+
+
+
+
+
+
+
+
