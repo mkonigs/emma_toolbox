@@ -126,19 +126,20 @@ kable(mytestdetails, format="markdown", caption="Test details", align="l")
 rci_calc <- function(data, var, trr, t1, t2){
 
   # get sd from control group
-std <- sd(eval(parse(text = paste0("CTRL$", var))), na.rm=TRUE)  
+std <- sd(eval(parse(text = paste0("ctrl_normed$", var))), na.rm=TRUE)  
 
   #calc rci
-sem <- std * (sqrt(1-trr))
-sed <- sqrt(2*(sem*sem))
+#sem <- std * (sqrt(1-trr))
+#sed <- sqrt(2*(sem*sem))
 diff <- eval(parse(text = paste0("ET_subj$", var)))[i] - eval(parse(text = paste0("ET_subj$", var)))[j] 
 sd_change <- diff/std
-rci <- diff/sed
+#rci <- diff/sed
 
   #calc p-value
-p_rci <- round(pnorm(abs(rci), lower.tail = FALSE),3)*2
+#p_rci <- round(pnorm(abs(rci), lower.tail = FALSE),3)*2
 
-rci_results <- list("sd_change" = sd_change, "RCI" = rci, "Pval" = c(p_rci), "diff" = diff)
+#rci_results <- list("sd_change" = sd_change, "RCI" = rci, "Pval" = c(p_rci), "diff" = diff)
+rci_results <- list("sd_change" = sd_change)
 return(rci_results)
 }
 
@@ -253,8 +254,8 @@ if (nrow(ET_subj)>1){
 s=1
 for (var in vars){
 
-rci_table <- data.frame(matrix(NA, (nrow=nrow(ET_subj)*(nrow(ET_subj)-1)/2), ncol=4))
-colnames(rci_table) <- c("Timepoint", "SD change", "RCI-index", "P-Value")
+rci_table <- data.frame(matrix(NA, (nrow=nrow(ET_subj)*(nrow(ET_subj)-1)/2), ncol=2))
+colnames(rci_table) <- c("Timepoint", "SD change")
 
 z=1
 k=1:nrow(ET_subj)
@@ -266,17 +267,11 @@ for (i in k){
       
       p1 <- ""
       p1[sqrt(rci_results$sd_change*rci_results$sd_change)>1.5] <- "*"
-      
-      p2 <- ""
-      p2[rci_results$Pval<.05] <- "*"
-      p2[rci_results$Pval<.01] <- "**"
-      p2[rci_results$Pval<.001] <- "***"
+
       
       #write to table
       rci_table[z,1] <- paste0("T", i, " vs ", "T", j)
       rci_table[z,2] <- paste0(round(rci_results$sd_change,2),p1)
-      rci_table[z,3] <- paste0(round(rci_results$RCI,2),p2)
-      rci_table[z,4] <- round(rci_results$Pval,3)
 
       z=z+1
      }
@@ -374,17 +369,15 @@ plot <- ggplot(data = ET_subj, aes(x=test, y=eval(parse(text = var)))) +
   geom_errorbar(aes(ymin=eval(parse(text = var))-0.75, ymax=eval(parse(text = var))+0.75, color = factor(test)), width=.5)
 
 assign(paste("plot_", var, sep = ""), plot)
-assign(paste("plot_", var, sep = ""), plot)
-assign(paste("plot_", var, sep = ""), plot)
 
 suppressWarnings(suppressWarnings(print(plot)))
-print(kable(rci_table, format="markdown", caption="* P<.05, ** P<.01, *** P<.001", align="l"))
+print(kable(rci_table, format="markdown"))
 
-Legend <- " "
-Values <- "* P<.05, ** P<.01, *** P<.001"
-Leg <- data.frame(Legend, Values)
+#Legend <- " "
+#Values <- "* P<.05, ** P<.01, *** P<.001"
+#Leg <- data.frame(Legend, Values)
 
-print(kable(Leg, format="markdown", align="l", caption="* P<.05, ** P<.01, *** P<.001"))
+#print(kable(Leg, format="markdown", align="l", caption="* P<.05, ** P<.01, *** P<.001"))
 
 s=s+1
 
@@ -427,12 +420,12 @@ ggplot(data = et_domains_all_long, aes(x=Score, y=Domains, group = Date, colour=
 
 
 # define variables
-vars <- c("proc_sp", "visuom_acc", "motor_inh")
+vars <- c("mrt_neutral", "sd_neutral", "tau")
 dirs <- c("pos", "pos", "pos")
-des <- c("Processing speed", "Visuomotor Precision", "Motor Response Inhibition")
+des <- c("Processing speed", "Processing Stability", "Processing Consistency")
 trrs <- c(NA, NA, NA)
 
-scales <-c("Tau as percentage of MRT (z-score)", "SD as percentage of MRT (z-score)", "Mean Reaction Time (z-score)")
+scales <-c("Mean Reaction Time (z-score)", "SD as percentage of MRT (z-score)", "Tau as percentage of MRT (z-score)")
 
 summary <- data.frame(vars, dirs, des, trrs, scales)
 
@@ -446,8 +439,8 @@ if (nrow(ET_subj)>1){
 s=1
 for (var in vars){
 
-rci_table <- data.frame(matrix(NA, (nrow=nrow(ET_subj)*(nrow(ET_subj)-1)/2), ncol=4))
-colnames(rci_table) <- c("Timepoint", "SD change", "RCI-index", "P-Value")
+rci_table <- data.frame(matrix(NA, (nrow=nrow(ET_subj)*(nrow(ET_subj)-1)/2), ncol=2))
+colnames(rci_table) <- c("Timepoint", "SD change")
 
 z=1
 k=1:nrow(ET_subj)
@@ -460,16 +453,9 @@ for (i in k){
       p1 <- ""
       p1[sqrt(rci_results$sd_change*rci_results$sd_change)>1.5] <- "*"
       
-      p2 <- ""
-      p2[rci_results$Pval<.05] <- "*"
-      p2[rci_results$Pval<.01] <- "**"
-      p2[rci_results$Pval<.001] <- "***"
-      
       #write to table
       rci_table[z,1] <- paste0("T", i, " vs ", "T", j)
       rci_table[z,2] <- paste0(round(rci_results$sd_change,2),p1)
-      rci_table[z,3] <- paste0(round(rci_results$RCI,2),p2)
-      rci_table[z,4] <- round(rci_results$Pval,3)
 
       z=z+1
      }
@@ -566,20 +552,18 @@ plot <- ggplot(data = ET_subj, aes(x=test, y=eval(parse(text = var)))) +
   
   expand_limits(y=c(-2,2)) +
   
-  geom_errorbar(aes(ymin=eval(parse(text = var))-0.75, ymax=eval(parse(text = var))+0.75, color = factor(test)), width=.2)
+  geom_errorbar(aes(ymin=eval(parse(text = var))-0.75, ymax=eval(parse(text = var))+0.75, color = factor(test)), width=.5)
 
-assign(paste("plot_", var, sep = ""), plot)
-assign(paste("plot_", var, sep = ""), plot)
 assign(paste("plot_", var, sep = ""), plot)
 
 suppressWarnings(suppressWarnings(print(plot)))
-print(kable(rci_table, format="markdown", caption="* P<.05, ** P<.01, *** P<.001", align="l"))
+print(kable(rci_table, format="markdown"))
 
-Legend <- " "
-Values <- "* P<.05, ** P<.01, *** P<.001"
-Leg <- data.frame(Legend, Values)
+#Legend <- " "
+#Values <- "* P<.05, ** P<.01, *** P<.001"
+#Leg <- data.frame(Legend, Values)
 
-print(kable(Leg, format="markdown", align="l", caption="* P<.05, ** P<.01, *** P<.001"))
+#print(kable(Leg, format="markdown", align="l", caption="* P<.05, ** P<.01, *** P<.001"))
 
 s=s+1
 
@@ -628,7 +612,7 @@ ggplot(data = et_domains_all_long, aes(x=Score, y=Domains, group = Date, colour=
 #### RCI ####
 
 # define variables
-vars <- c("alert", "orient", "int_cont_sp", "int_cont_acc")
+vars <- c("alerting_mrt", "orienting_mrt", "exec_mrt", "exec_acc")
 dirs <- c("pos", "pos", "pos", "pos")
 des <- c("Alerting Attention", "Orienting Attention", "Interference Control Speed", "Interference Control Accuracy")
 trrs <- c(NA, NA, NA, NA)
@@ -647,8 +631,8 @@ if (nrow(ET_subj)>1){
 s=1
 for (var in vars){
 
-rci_table <- data.frame(matrix(NA, (nrow=nrow(ET_subj)*(nrow(ET_subj)-1)/2), ncol=4))
-colnames(rci_table) <- c("Timepoint", "SD change", "RCI-index", "P-Value")
+rci_table <- data.frame(matrix(NA, (nrow=nrow(ET_subj)*(nrow(ET_subj)-1)/2), ncol=2))
+colnames(rci_table) <- c("Timepoint", "SD change")
 
 z=1
 k=1:nrow(ET_subj)
@@ -661,16 +645,10 @@ for (i in k){
       p1 <- ""
       p1[sqrt(rci_results$sd_change*rci_results$sd_change)>1.5] <- "*"
       
-      p2 <- ""
-      p2[rci_results$Pval<.05] <- "*"
-      p2[rci_results$Pval<.01] <- "**"
-      p2[rci_results$Pval<.001] <- "***"
       
       #write to table
       rci_table[z,1] <- paste0("T", i, " vs ", "T", j)
       rci_table[z,2] <- paste0(round(rci_results$sd_change,2),p1)
-      rci_table[z,3] <- paste0(round(rci_results$RCI,2),p2)
-      rci_table[z,4] <- round(rci_results$Pval,3)
 
       z=z+1
      }
@@ -775,13 +753,13 @@ assign(paste("plot_", var, sep = ""), plot)
 assign(paste("plot_", var, sep = ""), plot)
 
 suppressWarnings(suppressWarnings(print(plot)))
-print(kable(rci_table, format="markdown", caption="* P<.05, ** P<.01, *** P<.001", align="l"))
+print(kable(rci_table, format="markdown"))
 
-Legend <- " "
-Values <- "* P<.05, ** P<.01, *** P<.001"
-Leg <- data.frame(Legend, Values)
+#Legend <- " "
+#Values <- "* P<.05, ** P<.01, *** P<.001"
+#Leg <- data.frame(Legend, Values)
 
-print(kable(Leg, format="markdown", align="l", caption="* P<.05, ** P<.01, *** P<.001"))
+#print(kable(Leg, format="markdown", align="l", caption="* P<.05, ** P<.01, *** P<.001"))
 
 s=s+1
 
@@ -842,8 +820,8 @@ if (nrow(ET_subj)>1){
 s=1
 for (var in vars){
 
-rci_table <- data.frame(matrix(NA, (nrow=nrow(ET_subj)*(nrow(ET_subj)-1)/2), ncol=4))
-colnames(rci_table) <- c("Timepoint", "SD change", "RCI-index", "P-Value")
+rci_table <- data.frame(matrix(NA, (nrow=nrow(ET_subj)*(nrow(ET_subj)-1)/2), ncol=2))
+colnames(rci_table) <- c("Timepoint", "SD change")
 
 z=1
 k=1:nrow(ET_subj)
@@ -856,16 +834,10 @@ for (i in k){
       p1 <- ""
       p1[sqrt(rci_results$sd_change*rci_results$sd_change)>1.5] <- "*"
       
-      p2 <- ""
-      p2[rci_results$Pval<.05] <- "*"
-      p2[rci_results$Pval<.01] <- "**"
-      p2[rci_results$Pval<.001] <- "***"
-      
       #write to table
       rci_table[z,1] <- paste0("T", i, " vs ", "T", j)
       rci_table[z,2] <- paste0(round(rci_results$sd_change,2),p1)
-      rci_table[z,3] <- paste0(round(rci_results$RCI,2),p2)
-      rci_table[z,4] <- round(rci_results$Pval,3)
+
 
       z=z+1
      }
@@ -969,13 +941,13 @@ assign(paste("plot_", var, sep = ""), plot)
 assign(paste("plot_", var, sep = ""), plot)
 
 suppressWarnings(suppressWarnings(print(plot)))
-print(kable(rci_table, format="markdown", caption="* P<.05, ** P<.01, *** P<.001", align="l"))
+print(kable(rci_table, format="markdown"))
 
-Legend <- " "
-Values <- "* P<.05, ** P<.01, *** P<.001"
-Leg <- data.frame(Legend, Values)
+#Legend <- " "
+#Values <- "* P<.05, ** P<.01, *** P<.001"
+#Leg <- data.frame(Legend, Values)
 
-print(kable(Leg, format="markdown", align="l", caption="* P<.05, ** P<.01, *** P<.001"))
+#print(kable(Leg, format="markdown", align="l", caption="* P<.05, ** P<.01, *** P<.001"))
 
 s=s+1
 
@@ -1049,8 +1021,8 @@ if (nrow(ET_subj)>1){
 s=1
 for (var in vars){
 
-rci_table <- data.frame(matrix(NA, (nrow=nrow(ET_subj)*(nrow(ET_subj)-1)/2), ncol=4))
-colnames(rci_table) <- c("Timepoint", "SD change", "RCI-index", "P-Value")
+rci_table <- data.frame(matrix(NA, (nrow=nrow(ET_subj)*(nrow(ET_subj)-1)/2), ncol=2))
+colnames(rci_table) <- c("Timepoint", "SD change")
 
 z=1
 k=1:nrow(ET_subj)
@@ -1063,16 +1035,9 @@ for (i in k){
       p1 <- ""
       p1[sqrt(rci_results$sd_change*rci_results$sd_change)>1.5] <- "*"
       
-      p2 <- ""
-      p2[rci_results$Pval<.05] <- "*"
-      p2[rci_results$Pval<.01] <- "**"
-      p2[rci_results$Pval<.001] <- "***"
-      
       #write to table
       rci_table[z,1] <- paste0("T", i, " vs ", "T", j)
       rci_table[z,2] <- paste0(round(rci_results$sd_change,2),p1)
-      rci_table[z,3] <- paste0(round(rci_results$RCI,2),p2)
-      rci_table[z,4] <- round(rci_results$Pval,3)
 
       z=z+1
      }
@@ -1177,13 +1142,13 @@ assign(paste("plot_", var, sep = ""), plot)
 assign(paste("plot_", var, sep = ""), plot)
 
 suppressWarnings(print(plot))
-print(kable(rci_table, format="markdown", caption="* P<.05, ** P<.01, *** P<.001", align="l"))
+print(kable(rci_table, format="markdown"))
 
-Legend <- " "
-Values <- "* P<.05, ** P<.01, *** P<.001"
-Leg <- data.frame(Legend, Values)
+#Legend <- " "
+#Values <- "* P<.05, ** P<.01, *** P<.001"
+#Leg <- data.frame(Legend, Values)
 
-print(kable(Leg, format="markdown", align="l", caption="* P<.05, ** P<.01, *** P<.001"))
+#print(kable(Leg, format="markdown", align="l", caption="* P<.05, ** P<.01, *** P<.001"))
 
 s=s+1
 
@@ -1242,8 +1207,8 @@ if (nrow(ET_subj)>1){
 s=1
 for (var in vars){
 
-rci_table <- data.frame(matrix(NA, (nrow=nrow(ET_subj)*(nrow(ET_subj)-1)/2), ncol=4))
-colnames(rci_table) <- c("Timepoint", "SD change", "RCI-index", "P-Value")
+rci_table <- data.frame(matrix(NA, (nrow=nrow(ET_subj)*(nrow(ET_subj)-1)/2), ncol=2))
+colnames(rci_table) <- c("Timepoint", "SD change")
 
 z=1
 k=1:nrow(ET_subj)
@@ -1256,16 +1221,9 @@ for (i in k){
       p1 <- ""
       p1[sqrt(rci_results$sd_change*rci_results$sd_change)>1.5] <- "*"
       
-      p2 <- ""
-      p2[rci_results$Pval<.05] <- "*"
-      p2[rci_results$Pval<.01] <- "**"
-      p2[rci_results$Pval<.001] <- "***"
-      
       #write to table
       rci_table[z,1] <- paste0("T", i, " vs ", "T", j)
       rci_table[z,2] <- paste0(round(rci_results$sd_change,2),p1)
-      rci_table[z,3] <- paste0(round(rci_results$RCI,2),p2)
-      rci_table[z,4] <- round(rci_results$Pval,3)
 
       z=z+1
      }
@@ -1369,13 +1327,13 @@ assign(paste("plot_", var, sep = ""), plot)
 assign(paste("plot_", var, sep = ""), plot)
 
 suppressWarnings(suppressWarnings(print(plot)))
-print(kable(rci_table, format="markdown", caption="* P<.05, ** P<.01, *** P<.001", align="l"))
+print(kable(rci_table, format="markdown"))
 
-Legend <- " "
-Values <- "* P<.05, ** P<.01, *** P<.001"
-Leg <- data.frame(Legend, Values)
+#Legend <- " "
+#Values <- "* P<.05, ** P<.01, *** P<.001"
+#Leg <- data.frame(Legend, Values)
 
-print(kable(Leg, format="markdown", align="l", caption="* P<.05, ** P<.01, *** P<.001"))
+#print(kable(Leg, format="markdown", align="l", caption="* P<.05, ** P<.01, *** P<.001"))
 
 s=s+1
 
