@@ -64,7 +64,7 @@ rmarkdown::render("Scripting/subscripts/subscripts/preprocess.Rmd")
 rmarkdown::render("Scripting/subscripts/subscripts/impute.Rmd")
 
 # APPLY PCA
-rmarkdown::render("Scripting/subscripts/subscripts//apply_pca.Rmd")
+rmarkdown::render("Scripting/subscripts/subscripts/apply_pca.Rmd")
 
 # APPLY NORM REGRESSION
 ctrl_demo <- read.table(paste0("../emma_toolbox_data/Norms/", pop, "_age.txt"), header = TRUE)
