@@ -8,3 +8,4 @@ Version 17-3-2026
 
 # 17-3-2026
 - corrections to report generation, fixes for reports with multiple observations
+- implemented the change report in the portable environment
