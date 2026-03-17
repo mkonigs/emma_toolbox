@@ -15,7 +15,7 @@ ipak(package_list)
 args = commandArgs(trailingOnly=TRUE)
 subjects <- args
 
-#subjects <- "110001"
+#subjects <- "110527"
 
 for (subj in subjects){
 
@@ -72,11 +72,11 @@ for (subj in subjects){
   pop <- read_file("../emma_toolbox_data/Settings/pop.txt")
   pop <- gsub("[\r\n]", "", pop)
   
-  # start analysis
-  source("Scripting/subscripts/domains.R")
+  # start analysis for domains
+  source("Scripting/subscripts/process_domains.R")
   
-  ### CHANGE ###
-  #source("Scripting/change.R")
+  # start analysis for change
+  source("Scripting/subscripts/process_change.R")
   
 }
 
