@@ -59,5 +59,5 @@ if (center == "KNVB"){
 dups <- ET_DATABASE[ET_DATABASE$subj %in% ET_DATABASE$subj[duplicated(ET_DATABASE$subj)],]
 
 print("ET DATABASE compiled")
-setwd("../../emma_toolbox/Scripting")
+setwd("../../emma_toolbox")
 

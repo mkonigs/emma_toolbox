@@ -1,4 +1,6 @@
 
+source("ipak.R")
+
 # load packages
 package_list <- c("lubridate", "plyr", "readr", "knitr", "rmarkdown")
 ipak(package_list)
@@ -218,4 +220,4 @@ if (dir.exists("../VisuoMotor")){
   rm(dataset)
 }
 
-setwd ("../../../emma_toolbox")
+setwd ("../../../emma_toolbox/Scripting")

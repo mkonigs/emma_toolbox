@@ -27,11 +27,26 @@ print("Insert base number for neurocognitive monitoring: ")
 subj <- readLines(file("stdin"),1)
 print(paste0("Starting neurocognitive monitoring for:", subj))
 
-source("subscripts/repeated_measures.R")
+# SGH or CM?
+print("Neurocognitive monitoring for SGH (press 1) or CM (press 2)? ")
+mode <- readLines(file("stdin"),1)
 
-#rerun backup
-setwd(base)
-shell(paste0('robocopy ../emma_toolbox_data ', drive, '/emma_toolbox_data /E /XO', sep=""))
+
+if(mode == "1"){
+  print(paste0("Starting neurocognitive monitoring in SGH for: ", subj))  
+  
+  source("Scripting/subscripts/repeated_measures.R")
+
+}
+
+if(mode == "2"){
+  
+  print(paste0("Starting neurocognitive monitoring in CM for:", subj))  
+  
+  source("subscripts/repeated_measures_CM.R")
+  
+}
+
 
 # close
 print("Backup & Analysis finished")

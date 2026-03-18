@@ -636,27 +636,43 @@ chunk like this:</p>
 ## Class: mids
 ## Number of multiple imputations:  5 
 ## Imputation methods:
-##            subj            test           group     mrt_neutral      sd_neutral             tau    alerting_mrt 
-##              &quot;&quot;              &quot;&quot;              &quot;&quot;              &quot;&quot;              &quot;&quot;              &quot;&quot;              &quot;&quot; 
-##   orienting_mrt        exec_mrt        exec_acc     vis_mem_enc     ver_mem_enc      vis_wm_enc       vis_wm_ce 
-##              &quot;&quot;              &quot;&quot;              &quot;&quot;           &quot;pmm&quot;           &quot;pmm&quot;           &quot;pmm&quot;           &quot;pmm&quot; 
-##      ver_wm_enc       ver_wm_ce visuom_random_d  visuom_speed_d  motor_response 
+##            subj            test           group     mrt_neutral      sd_neutral 
+##              &quot;&quot;              &quot;&quot;              &quot;&quot;              &quot;&quot;              &quot;&quot; 
+##             tau    alerting_mrt   orienting_mrt        exec_mrt        exec_acc 
+##              &quot;&quot;              &quot;&quot;              &quot;&quot;              &quot;&quot;              &quot;&quot; 
+##     vis_mem_enc     ver_mem_enc      vis_wm_enc       vis_wm_ce      ver_wm_enc 
 ##           &quot;pmm&quot;           &quot;pmm&quot;           &quot;pmm&quot;           &quot;pmm&quot;           &quot;pmm&quot; 
+##       ver_wm_ce visuom_random_d  visuom_speed_d  motor_response 
+##           &quot;pmm&quot;           &quot;pmm&quot;           &quot;pmm&quot;           &quot;pmm&quot; 
 ## PredictorMatrix:
-##             subj test group mrt_neutral sd_neutral tau alerting_mrt orienting_mrt exec_mrt exec_acc vis_mem_enc
-## subj           0    0     0           0          0   0            0             0        0        0           0
-## test           0    0     0           0          0   0            0             0        0        0           0
-## group          0    0     0           1          1   1            1             1        1        1           1
-## mrt_neutral    0    0     1           0          1   1            1             1        1        1           1
-## sd_neutral     0    0     1           1          0   1            1             1        1        1           1
-## tau            0    0     1           1          1   0            1             1        1        1           1
-##             ver_mem_enc vis_wm_enc vis_wm_ce ver_wm_enc ver_wm_ce visuom_random_d visuom_speed_d motor_response
-## subj                  0          0         0          0         0               0              0              0
-## test                  0          0         0          0         0               0              0              0
-## group                 1          1         1          1         1               1              1              1
-## mrt_neutral           1          1         1          1         1               1              1              1
-## sd_neutral            1          1         1          1         1               1              1              1
-## tau                   1          1         1          1         1               1              1              1</code></pre>
+##             subj test group mrt_neutral sd_neutral tau alerting_mrt
+## subj           0    0     0           0          0   0            0
+## test           0    0     0           0          0   0            0
+## group          0    0     0           1          1   1            1
+## mrt_neutral    0    0     1           0          1   1            1
+## sd_neutral     0    0     1           1          0   1            1
+## tau            0    0     1           1          1   0            1
+##             orienting_mrt exec_mrt exec_acc vis_mem_enc ver_mem_enc vis_wm_enc
+## subj                    0        0        0           0           0          0
+## test                    0        0        0           0           0          0
+## group                   1        1        1           1           1          1
+## mrt_neutral             1        1        1           1           1          1
+## sd_neutral              1        1        1           1           1          1
+## tau                     1        1        1           1           1          1
+##             vis_wm_ce ver_wm_enc ver_wm_ce visuom_random_d visuom_speed_d
+## subj                0          0         0               0              0
+## test                0          0         0               0              0
+## group               1          1         1               1              1
+## mrt_neutral         1          1         1               1              1
+## sd_neutral          1          1         1               1              1
+## tau                 1          1         1               1              1
+##             motor_response
+## subj                     0
+## test                     0
+## group                    1
+## mrt_neutral              1
+## sd_neutral               1
+## tau                      1</code></pre>
 </div>
 
 
