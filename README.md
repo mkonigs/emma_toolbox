@@ -1,6 +1,9 @@
 # emma_toolbox
 Supporting files for Emma Toolbox for Neurocognitive Functioning
 
+# 20-3-2026
+- implemented crude version of elite analysis
+
 # 18-3-2026
 - implemented report generation at backup drive
 
