@@ -162,8 +162,10 @@ print(paste0("The selected control group consists of ", nrow(ctrl_demo), " indiv
 exp <- separate(all_normed[which(all_normed$group==1),], "subj", c("subj", "test"), sep="_")
 ages <- select(exp, c(test, age))
 ages$age <- round(ages$age,1)
-print("Normed scores were calculated using the following ages: ")
 
+ass <- select(et_exp_, c("test", "meting"))
+ages <- merge(ages, ass, by="test")
+print("Normed scores were calculated using the following ages: ")
 kable(ages, format="markdown", align="l")
 
       

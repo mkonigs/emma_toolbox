@@ -46,7 +46,8 @@ if (exists("bu")){
 # select the (repeated) measurement(s) associated with the subject
 et_exp <- et_exp[which(et_exp$subj %in% subj_base),]
 et_exp$group <- 1
-
+et_exp_ <- et_exp
+  
 # get control data
 #et_ctrl <- read.table(paste0("../emma_toolbox_data/Norms/", pop, ".txt"), header = TRUE)
 et_ctrl <- read.table(paste0("../norm_data/KNVB_elite.txt"), header = TRUE)
