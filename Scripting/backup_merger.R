@@ -22,6 +22,14 @@ source("subscripts/merger.R")
 # compile database 
 source("subscripts/compile_database.R")
 
+# get center
+center <- read_file("../emma_toolbox_data/Settings/center.txt")
+center <- gsub("[\r\n]", "", center)
+
+# get pop
+pop <- read_file("../emma_toolbox_data/Settings/pop.txt")
+pop <- gsub("[\r\n]", "", pop)
+
 # repeated measures
 print("Insert base number for neurocognitive monitoring: ")
 subj <- readLines(file("stdin"),1)
@@ -43,7 +51,7 @@ if(mode == "2"){
   
   print(paste0("Starting neurocognitive monitoring in CM for:", subj))  
   
-  source("subscripts/repeated_measures_CM.R")
+  source("Scripting/subscripts/repeated_measures_CM.R")
   
 }
 

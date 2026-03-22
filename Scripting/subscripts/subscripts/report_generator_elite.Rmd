@@ -200,7 +200,7 @@ et_domains <- et_domains_all[which(et_domains_all$subj==as.numeric(as.character(
 
 ### Domains
 
-test <- et_select_imp[grep(as.numeric(as.character(subj)), et_select_imp$subj),]$test
+#test <- et_select_imp[grep(as.numeric(as.character(subj)), et_select_imp$subj),]$test
 #et_domains_all <- data.frame(test, et_domains_all)
 et_domains_all$test <- as.factor(as.Date(et_domains_all$test))
 
