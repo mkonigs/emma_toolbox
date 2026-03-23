@@ -57,7 +57,6 @@ if(mode == "2"){
 
 
 shell(paste0('robocopy ../emma_toolbox_data ', drive, '/emma_toolbox_data /E /XO', sep=""))
-shell(paste0('robocopy ../emma_toolbox/Scripting ', drive, '/emma_toolbox/Scripting /E /XO', sep=""))
 
 
 # close
