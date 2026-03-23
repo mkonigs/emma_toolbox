@@ -10,8 +10,8 @@ print("Which drive is the backup connected to?, For example, G: ")
 drive <- readLines(file("stdin"),1)
 print(drive)
 
-shell(paste0('robocopy ../emma_toolbox_data ', drive, '/emma_toolbox_data /E /XO', sep=""))
-shell(paste0('robocopy ../emma_toolbox/Scripting ', drive, '/emma_toolbox/Scripting /E /XO', sep=""))
+shell(paste0('robocopy ', path.expand("~/"), 'emma_toolbox_data ', drive, '/emma_toolbox_data /E /XO', sep=""))
+shell(paste0('robocopy ', path.expand("~/"), '/emma_toolbox/Scripting ', drive, '/emma_toolbox/Scripting /E /XO', sep=""))
 
 # Move to backup environment
 setwd(paste0(drive,"/emma_toolbox/Scripting"))
@@ -56,7 +56,7 @@ if(mode == "2"){
 }
 
 
-shell(paste0('robocopy ../emma_toolbox_data ', drive, '/emma_toolbox_data /E /XO', sep=""))
+shell(paste0('robocopy ', base, '/../emma_toolbox_data ', drive, '/emma_toolbox_data /E /XO', sep=""))
 
 
 # close
