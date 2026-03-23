@@ -1,6 +1,9 @@
 # emma_toolbox
 Supporting files for Emma Toolbox for Neurocognitive Functioning
 
+# 23-3-2026
+- fix for elite CM analysis on backup
+
 # 22-3-2026
 - implemented elite CM analysis
 - elite norm groups has to be revised
