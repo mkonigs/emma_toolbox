@@ -83,7 +83,7 @@ if (exists("bu")){
   
   if(bu==TRUE){
     
-    rmarkdown::render("Scripting/subscripts/subscripts/report_generator_elite.Rmd", output_file = paste0(base, "../../emma_toolbox_data/Files/", subj, "/Emma Toolbox - Report.html"))
+    rmarkdown::render("Scripting/subscripts/subscripts/report_generator_elite.Rmd", output_file = paste0(base, "/../emma_toolbox_data/Files/", subj, "/Emma Toolbox - Report.html"))
     }
   
 }else{
