@@ -15,7 +15,7 @@ ipak(package_list)
 args = commandArgs(trailingOnly=TRUE)
 subjects <- args
 
-subjects <- "110527"
+#subjects <- "110527"
 
 for (subj in subjects){
 
