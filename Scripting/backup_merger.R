@@ -8,7 +8,7 @@ base <- getwd()
 # backup drive
 print("Which drive is the backup connected to?, For example, G: ")
 drive <- readLines(file("stdin"),1)
-print(drive)
+print(paste0("Updating backup drive ", drive)
 
 shell(paste0('robocopy ', path.expand("~/"), '/emma_toolbox_data ', drive, '/emma_toolbox_data /E /XO /NFL /NDL /NJH', sep=""))
 shell(paste0('robocopy ', path.expand("~/"), '/emma_toolbox/Scripting ', drive, '/emma_toolbox/Scripting /E /XO /NFL /NDL /NJH', sep=""))
@@ -55,7 +55,7 @@ if(mode == "2"){
   
 }
 
-
+print(paste0("Updating backup drive ", drive)
 shell(paste0('robocopy ', base, '/../emma_toolbox_data ', drive, '/emma_toolbox_data /E /XO /NFL /NDL /NJH', sep=""))
 
 
