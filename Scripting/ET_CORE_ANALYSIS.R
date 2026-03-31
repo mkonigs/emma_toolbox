@@ -63,6 +63,8 @@ for (subj in subjects){
   testname <- "visuomotor"
   source("Scripting/process_database.R")}
 
+  setwd("Scripting")
+  
   # merge
   source("subscripts/merger.R")    
   
