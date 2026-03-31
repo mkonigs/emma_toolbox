@@ -396,7 +396,7 @@ s=s+1
 
 Note. Higher scores reflect better performance.
 
-### Domain: Speed
+### Domain: Information Processing
 
 
 ```{r Processing, echo=FALSE, warning = FALSE, results='asis'}
@@ -582,12 +582,8 @@ s=s+1
 
 Note. Higher scores reflect better performance.
 
-### Domain: Stability
 
-
-
-
-### Domains: Attention Control
+### Domain: Attention Control
 
 ```{r attention_control, echo=FALSE, warning = FALSE, results='asis'}
 
@@ -606,7 +602,7 @@ colnames(et_domains_all_long) <- c("Date", "Domains", "Score")
 ystart <- 0.5
 yend <- 6.5
 
-ggplot(data = et_domains_all_long, aes(x=Score, y=Domains, group = Date, colour=Date)) + geom_rect(aes(xmin = -1, xmax = 1), ymin = ystart, ymax = yend, alpha = 0.05, fill="green", colour=NA) + geom_rect(aes(xmin = -2, xmax = -1), ymin = ystart, ymax = yend, alpha = 0.05, fill="yellow", colour=NA) + geom_rect(aes(xmin = -Inf, xmax = -2), ymin = ystart, ymax = yend, alpha = 0.05, fill="red", colour=NA) + geom_rect(aes(xmin = 1, xmax = 2), ymin = ystart, ymax = yend, alpha = 0.10, fill="green", colour=NA) + geom_rect(aes(xmin = 2, xmax = Inf), ymin = ystart, ymax = yend, alpha = 0.15, fill="green", colour=NA) + geom_errorbarh(aes(x = Score, xmin=Score-0.75, xmax=Score+0.75), width=.2, size =.3, position = position_dodgev(height = .5)) + geom_point(size=3, position = position_dodgev(height = .5)) + ggtitle("Domain Exploration - Memory") + theme(plot.title = element_text(hjust = 0.5)) + geom_vline(xintercept = c(0), color = "grey", size=0.5) + xlab ("Performance (z-score ± .75 SD)") + ylab("Neurocognitive Function")
+ggplot(data = et_domains_all_long, aes(x=Score, y=Domains, group = Date, colour=Date)) + geom_rect(aes(xmin = -1, xmax = 1), ymin = ystart, ymax = yend, alpha = 0.05, fill="green", colour=NA) + geom_rect(aes(xmin = -2, xmax = -1), ymin = ystart, ymax = yend, alpha = 0.05, fill="yellow", colour=NA) + geom_rect(aes(xmin = -Inf, xmax = -2), ymin = ystart, ymax = yend, alpha = 0.05, fill="red", colour=NA) + geom_rect(aes(xmin = 1, xmax = 2), ymin = ystart, ymax = yend, alpha = 0.10, fill="green", colour=NA) + geom_rect(aes(xmin = 2, xmax = Inf), ymin = ystart, ymax = yend, alpha = 0.15, fill="green", colour=NA) + geom_errorbarh(aes(x = Score, xmin=Score-0.75, xmax=Score+0.75), width=.2, size =.3, position = position_dodgev(height = .5)) + geom_point(size=3, position = position_dodgev(height = .5)) + ggtitle("Domain Exploration - Attention Control") + theme(plot.title = element_text(hjust = 0.5)) + geom_vline(xintercept = c(0), color = "grey", size=0.5) + xlab ("Performance (z-score ± .75 SD)") + ylab("Neurocognitive Function")
 
 
 #### RCI ####
@@ -776,7 +772,7 @@ s=s+1
 
 Note. Higher scores reflect better performance.
 
-### Domains: Memory
+### Domain: Memory
 
 ```{r memory, echo=FALSE, warning = FALSE, results='asis'}
 
