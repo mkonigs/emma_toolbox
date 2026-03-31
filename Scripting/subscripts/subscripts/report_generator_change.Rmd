@@ -49,7 +49,7 @@ ipak(pkg)
 
 ```{r load_data, echo=FALSE, include=FALSE}
 
-all_data <- read.csv2(paste("../../../../emma_toolbox_data/Raw/Attention/attention-subject-", subj,".csv",sep=""))
+all_data <- read.csv2(paste("../../../../emma_toolbox_data/Raw/Attention/attention-subject-", subj,".csv",sep=""), sep=",")
 
 ant_data <- data.frame(subj)
 
