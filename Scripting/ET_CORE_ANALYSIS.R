@@ -62,6 +62,12 @@ for (subj in subjects){
   source("Scripting/process_test.R")
   testname <- "visuomotor"
   source("Scripting/process_database.R")}
+
+  # merge
+  source("subscripts/merger.R")    
+  
+  # compile database 
+  source("subscripts/compile_database.R")
   
   ### DOMAINS ###
   # get center
