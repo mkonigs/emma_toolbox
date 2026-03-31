@@ -3,6 +3,7 @@ Supporting files for Emma Toolbox for Neurocognitive Functioning
 
 # 31-3-2026
 - fix merge of databases and database compiler in ET_CORE_ANALYSIS
+- corrections in report_generator
 
 # 23-3-2026
 - fix for elite CM analysis on backup
