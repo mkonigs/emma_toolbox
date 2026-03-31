@@ -55,7 +55,7 @@ if(mode == "2"){
   
 }
 
-print(paste0("Updating backup drive ", drive)
+print(paste0("Updating backup drive ", drive))
 shell(paste0('robocopy ', base, '/../emma_toolbox_data ', drive, '/emma_toolbox_data /E /XO /NFL /NDL /NJH', sep=""))
 
 
