@@ -44,7 +44,7 @@ if (exists("bu")){
 }
 
 # select for regulier consult
-if(subj<990000){
+if(subj>990000){
 
 # get patient data
 et_exp <- read.table("../emma_toolbox_data/Databases/ET_DATABASE.txt", header = TRUE, sep=" ")
