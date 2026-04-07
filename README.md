@@ -2,6 +2,9 @@
 Supporting files for Emma Toolbox for Neurocognitive Functioning
 
 # 31-3-2026
+- fix to use the CM analysis for regular consult data (KNVB)
+
+# 31-3-2026
 - fix merge of databases and database compiler in ET_CORE_ANALYSIS
 - corrections in report_generator
 
