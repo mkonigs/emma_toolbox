@@ -1,6 +1,9 @@
 # emma_toolbox
 Supporting files for Emma Toolbox for Neurocognitive Functioning
 
+# 13-4-2026
+- implement optional analysis of delayed recall test in verbal memory data
+ 
 # 7-4-2026
 - fix to use the CM analysis for regular consult data (KNVB)
 
