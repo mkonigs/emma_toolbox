@@ -67,7 +67,7 @@ ___
 ```{r load data, echo=FALSE, warning = FALSE}
 
 all_data <- read_csv(paste("../../../emma_toolbox_data/Raw/VerbalMemory/verbalmem-subject-",subj,".csv",sep=""), col_types = cols())
-all_data_delay <- read_csv(paste("../../../emma_toolbox_data/Raw/VerbalMemory/verbalmem-vervolg-subject-",subj,".csv",sep=""), col_types = cols())
+
 
 ```
 
@@ -92,8 +92,7 @@ kable(mytestdetails, format="markdown", caption="Test details", align="l")
 
 all_data_test <- all_data
 all_data_encoding <- all_data_test[1:5,]
-all_data_retrieval <- all_data_delay[1,]
-all_data_recognition <- all_data_delay[2,]
+
 
 encoding <- all_data_encoding$correct
 
@@ -115,18 +114,39 @@ selected_items_5 <- all_data_encoding$selected_items[5]
 encoding_sum <- encoding_1 + encoding_2 + encoding_3 + encoding_4 + encoding_5
 encoding_incorrect <- sum(all_data_encoding$incorrect)
 encoding_double <- sum(all_data_encoding$double)
+
+if(exists(paste("../../../emma_toolbox_data/Raw/VerbalMemory/verbalmem-vervolg-subject-",subj,".csv",sep=""))){ 
   
-retrieval <- all_data_retrieval$correct[1]
-retrieval_incorrect <- sum(all_data_retrieval$incorrect)
-retrieval_double <- sum(all_data_retrieval$double)
+  all_data_delay <- read_csv(paste("../../../emma_toolbox_data/Raw/VerbalMemory/verbalmem-vervolg-subject-",subj,".csv",sep=""), col_types = cols())
+  
+  all_data_retrieval <- all_data_delay[1,]
+  all_data_recognition <- all_data_delay[2,]
 
-selected_items_retrieval <- all_data_retrieval$selected_items[1]
+  retrieval <- all_data_retrieval$correct[1]
+  retrieval_incorrect <- sum(all_data_retrieval$incorrect)
+  retrieval_double <- sum(all_data_retrieval$double)
 
-recognition_correct <- as.numeric(all_data_recognition$correct[1])
-selected_items_recognition <- all_data_recognition$selected_words[1]
-recognition_incorrect <- all_data_recognition$incorrect[1]
-recognition_fp <- all_data_recognition$incorrect_neg[1]
-recognition_fn <- all_data_recognition$incorrect_pos[1]
+  selected_items_retrieval <- all_data_retrieval$selected_items[1]
+
+  recognition_correct <- as.numeric(all_data_recognition$correct[1])
+  selected_items_recognition <- all_data_recognition$selected_words[1]
+  recognition_incorrect <- all_data_recognition$incorrect[1]
+  recognition_fp <- all_data_recognition$incorrect_neg[1]
+  recognition_fn <- all_data_recognition$incorrect_pos[1]
+  
+} else{
+    
+  retrieval <- NA
+  retrieval_incorrect <- NA
+  retrieval_double <- NA
+
+  selected_items_retrieval <- NA
+
+  recognition_correct <- NA
+  selected_items_recognition <- NA
+  recognition_incorrect <- NA
+  recognition_fp <- NA
+  recognition_fn <- NA}
 
 
 Metric <- c("Direct Recall 1", "Direct Recall 2", "Direct Recall 3", "Direct Recall 4", "Direct Recall 5", "Encoding Total", "Encoding Double", "Encoding Incorrect", "Delayed Recall Correct", "Delayed Recall Double", "Delayed Recall Incorrect", "Recognition Correct", "  False positives", "  False negatives")
