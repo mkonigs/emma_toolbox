@@ -33,14 +33,17 @@ et_exp <- read.table("../emma_toolbox_data/Databases/ET_DATABASE.txt", header = 
 
 # format subject numbers so that repeated measures have identical subject number, depending on in backup env or not
 if (exists("bu")){
-  et_exp$subj <- as.numeric(substr(et_exp$subj, 1, 6))
-  subj_base <- as.numeric(substr(subj, 1, 6))
+  
+  if(center <- "KNVB"){
+    et_exp$subj <- as.numeric(substr(et_exp$subj, 1, 6))
+    subj_base <- as.numeric(substr(subj, 1, 6))}
+  
 } else{
   subj_base <- subj
 }
 
 # select the (repeated) measurement(s) associated with the subject
-et_exp <- et_exp[which(et_exp$subj %in% subj_base),]
+et_exp <- et_exp[which(et_exp$subj %in% as.numeric(subj_base)),]
 et_exp$group <- 1
 
 # get control data
