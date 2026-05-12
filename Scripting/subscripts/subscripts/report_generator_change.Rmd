@@ -95,7 +95,7 @@ if (exists("canvas_backend", all_data) == TRUE){
   Details <- c(Details, backend)
 }
 
-date <- c(strsplit(time," "))
+date <- substr(unique(time), 1,8)
 date <- unlist(date)
 date <- date[1]
 test <- mdy(date)
