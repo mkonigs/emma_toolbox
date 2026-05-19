@@ -115,7 +115,7 @@ encoding_sum <- encoding_1 + encoding_2 + encoding_3 + encoding_4 + encoding_5
 encoding_incorrect <- sum(all_data_encoding$incorrect)
 encoding_double <- sum(all_data_encoding$double)
 
-if(exists(paste("../../../emma_toolbox_data/Raw/VerbalMemory/verbalmem-vervolg-subject-",subj,".csv",sep=""))){ 
+if(file.exists(paste("../../../emma_toolbox_data/Raw/VerbalMemory/verbalmem-vervolg-subject-",subj,".csv",sep=""))){ 
   
   all_data_delay <- read_csv(paste("../../../emma_toolbox_data/Raw/VerbalMemory/verbalmem-vervolg-subject-",subj,".csv",sep=""), col_types = cols())
   
