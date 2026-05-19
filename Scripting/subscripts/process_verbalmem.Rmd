@@ -173,7 +173,12 @@ ymin <- encoding[5]
 ymax <- encoding[1]
 plot_r <- ggplot(retrieval_data, aes(x = Trial, y= Correct)) + geom_point() + theme_cowplot() + ylim(ymin,ymax) + ggtitle("Delayed Recall")
 
-plot_grid(plot_e, plot_r)
+if(exists("all_data_delay")){
+    plot_grid(plot_e, plot_r)
+  }else{
+    plot_grid(plot_e)
+    }
+
 
 ```
 
