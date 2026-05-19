@@ -1,7 +1,10 @@
 # emma_toolbox
 Supporting files for Emma Toolbox for Neurocognitive Functioning
 
-# 23-5-2026
+# 19-5-2026
+- fix in process_verbalmem script (exists > file.exists) for handling optoinal delayed recall data
+
+# 23-4-2026
 - correct base subject number identification; range 1-6 now confined to KNVB setting
 
 # 13-4-2026
