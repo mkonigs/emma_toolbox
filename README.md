@@ -2,6 +2,9 @@
 Supporting files for Emma Toolbox for Neurocognitive Functioning
 
 # 19-5-2026
+- adding centering of age as covariate and adding the options of age^2 in norm regression
+
+# 19-5-2026
 - fix in process_verbalmem script (exists > file.exists) for handling optoinal delayed recall data
 
 # 23-4-2026
