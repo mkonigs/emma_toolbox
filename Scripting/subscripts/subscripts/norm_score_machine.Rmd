@@ -42,6 +42,9 @@ for (subj in eval(parse(text=paste0("data$", subj_var)))){
   # extract patient data together with norm data
 all_subj <- rbind(all[(all$subj == subj),], norm[(norm$subj != subj),])
 
+  # center age as covariate
+all_subj$age <- scale(all_subj$age, center=TRUE, scale=FALSE)
+
 #### INSERT NORM REGRESSION HERE ####
 
 # perform norm regression for these vars
@@ -53,6 +56,8 @@ for (i in vars){
 
   # make model  
 model <- lm(as.formula(paste0(i, "~", paste0(corr_vars, collapse=" + "))), data=all_subj)
+# secondary degree age
+#model <- lm(as.formula(paste0(i, "~ poly(", corr_vars, ",2)")), data=all_subj)
 
 #extract residuals
 all_subj[,which(colnames(all_subj)==i)] <- scale(residuals(model), center=TRUE, scale=TRUE)
