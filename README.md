@@ -1,6 +1,9 @@
 # emma_toolbox
 Supporting files for Emma Toolbox for Neurocognitive Functioning
 
+# 11-2-2026
+- implementing quadratic corrrection for age as default
+
 # 10-6-2026
 - adding centering of age as covariate and adding the options of age^2 in norm regression
 
