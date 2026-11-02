@@ -54,10 +54,11 @@ vars <- colnames(all_subj[,!-c(colnames(all_subj) %in% colnames(demo))])
 # loop trough vars
 for (i in vars){
 
-  # make model  
-model <- lm(as.formula(paste0(i, "~", paste0(corr_vars, collapse=" + "))), data=all_subj)
-# secondary degree age
-#model <- lm(as.formula(paste0(i, "~ poly(", corr_vars, ",2)")), data=all_subj)
+  # make model with linear correction of age (disabled) 
+  # model <- lm(as.formula(paste0(i, "~", paste0(corr_vars, collapse=" + "))), data=all_subj)
+
+# make model with quadratic correction of age (enabled)
+  model <- lm(as.formula(paste0(i, "~ poly(", corr_vars, ",2)")), data=all_subj)
 
 #extract residuals
 all_subj[,which(colnames(all_subj)==i)] <- scale(residuals(model), center=TRUE, scale=TRUE)
